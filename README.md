@@ -8,7 +8,7 @@ Most apps tell you *what* to do. Stuck Doctor asks *why you're stuck* first (sca
 
 Built at **Hacktoberfest 2026**.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KK_Dev0/stuck-doctor/blob/main/Stuck_Doctor.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KK_Dev0/Stuck_Doctor/blob/main/Stuck_Doctor.ipynb)
 
 ## ✨ What it does
 
