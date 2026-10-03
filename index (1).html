@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stuck Doctor · Get unstuck, get seen</title>
+<meta name="description" content="Stuck Doctor helps people who keep putting off the doctor take the first tiny step. Built with Gemma at Hacktoberfest 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    color-scheme: light;
+    --cream: #f6f1e7;
+    --paper: #fffdf8;
+    --ink: #1c2a28;
+    --ink-soft: #3f4d4a;
+    --muted: #6f756f;
+    --teal: #0f6b63;
+    --teal-dark: #0a4a44;
+    --mint: #dff1ec;
+    --clay: #e0643a;
+    --clay-dark: #c24f28;
+    --line: #e6dcc9;
+    --shadow: 0 18px 40px rgba(10, 74, 68, .10);
+    --radius: 22px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--cream); color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 0; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 600; color: var(--teal); margin: 0 0 10px; }
+
+  /* ---------- nav ---------- */
+  .nav { position: sticky; top: 0; z-index: 50; background: rgba(246, 241, 231, .88); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .nav.scrolled { border-color: var(--line); }
+  .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .logo-mark { width: 38px; height: 38px; border-radius: 12px; background: var(--teal); display: grid; place-items: center; }
+  .nav-links { display: flex; gap: 28px; }
+  .nav-links a { text-decoration: none; color: var(--ink-soft); font-weight: 500; font-size: 15px; }
+  .nav-links a:hover { color: var(--teal); }
+  .conn-btn { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 8px 14px; font: 500 14px 'Inter', sans-serif; color: var(--ink); cursor: pointer; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #c9b9a0; }
+  .dot.on { background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, .15); }
+  .dot.busy { background: #f59e0b; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
+
+  .conn-panel { position: absolute; right: 24px; top: 78px; width: min(420px, calc(100vw - 32px)); background: var(--paper); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 20px; display: none; }
+  .conn-panel.open { display: block; }
+  .conn-panel h3 { font-size: 20px; margin-bottom: 6px; }
+  .conn-panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .conn-row { display: flex; gap: 8px; }
+  .conn-row input { flex: 1; }
+  .conn-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .conn-msg.ok { color: #15803d; } .conn-msg.err { color: #b91c1c; }
+
+  /* ---------- buttons & fields ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px; padding: 14px 22px; font: 600 16px 'Inter', sans-serif; cursor: pointer; text-decoration: none; transition: transform .15s, box-shadow .15s, background .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--clay); color: #fff; box-shadow: 0 10px 24px rgba(224, 100, 58, .28); }
+  .btn-primary:hover { background: var(--clay-dark); }
+  .btn-ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--ink); }
+  .btn-small { padding: 10px 16px; font-size: 14px; border-radius: 12px; }
+  .btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  label.field { display: block; font-weight: 600; font-size: 14px; color: var(--teal-dark); margin: 0 0 18px; }
+  input[type=text], input[type=url], textarea, select {
+    width: 100%; margin-top: 8px; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line);
+    background: #fff; color: var(--ink); font: 400 15px 'Inter', sans-serif; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 84px; }
+  input:focus, textarea:focus, select:focus { border-color: var(--teal); box-shadow: 0 0 0 4px rgba(15, 107, 99, .12); }
+  .seg { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: inline-block; padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font-weight: 500; color: var(--ink-soft); cursor: pointer; transition: all .15s; }
+  .seg input:checked + span { background: var(--teal); border-color: var(--teal); color: #fff; }
+  .seg input:focus-visible + span { box-shadow: 0 0 0 4px rgba(15, 107, 99, .2); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 72px 0 88px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 5.6vw, 68px); }
+  .hero h1 em { font-style: italic; color: var(--teal); }
+  .hero .lede { font-size: 19px; color: var(--ink-soft); max-width: 540px; margin: 22px 0 32px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 14px; }
+  .trust span::before { content: '✓'; color: var(--teal); font-weight: 700; margin-right: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--ink-soft); margin-bottom: 22px; }
+  .badge b { color: var(--clay); }
+
+  .hero-art { position: relative; height: 470px; }
+  .mock { position: absolute; inset: 20px 30px 20px 40px; background: var(--paper); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow); padding: 28px; transform: rotate(2.5deg); }
+  .mock .rx { font-size: 56px; }
+  .mock-line { height: 10px; border-radius: 6px; background: #ece3d3; margin: 12px 0; }
+  .mock-move { background: var(--teal); border-radius: 16px; padding: 16px; margin: 20px 0; color: #fff; font-weight: 500; }
+  .mock-move small { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: 11px; color: #bfe7df; margin-bottom: 4px; }
+  .mock-bubble { background: #dcf8c6; border-radius: 14px 14px 14px 4px; padding: 12px 14px; font-size: 14px; color: var(--ink); max-width: 85%; }
+  .float { position: absolute; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; box-shadow: var(--shadow); font-size: 14px; font-weight: 600; animation: bob 4s ease-in-out infinite; }
+  .float.f1 { left: 0; top: 70px; }
+  .float.f2 { right: 0; bottom: 70px; animation-delay: -2s; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+
+  /* ---------- sections ---------- */
+  section { padding: 88px 0; }
+  .sec-head { max-width: 640px; margin-bottom: 44px; }
+  .sec-head h2 { font-size: clamp(32px, 4vw, 46px); }
+  .sec-head p { color: var(--ink-soft); font-size: 17px; margin: 14px 0 0; }
+  .alt { background: var(--paper); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+
+  .reasons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .reason { text-align: left; background: var(--paper); border: 1.5px solid var(--line); border-radius: var(--radius); padding: 24px; cursor: pointer; font: inherit; color: inherit; transition: transform .18s, border-color .18s, box-shadow .18s; }
+  .alt .reason { background: var(--cream); }
+  .reason:hover { transform: translateY(-4px); border-color: var(--teal); box-shadow: var(--shadow); }
+  .reason .ico { font-size: 28px; }
+  .reason h3 { font-size: 21px; margin: 12px 0 6px; }
+  .reason p { margin: 0; color: var(--muted); }
+  .reason .go { display: inline-block; margin-top: 14px; color: var(--teal); font-weight: 600; font-size: 14px; }
+
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; counter-reset: step; }
+  .step { position: relative; padding-top: 64px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 0; width: 46px; height: 46px; border-radius: 50%; background: var(--teal); color: #fff; display: grid; place-items: center; font: 600 20px 'Fraunces', serif; }
+  .step h3 { font-size: 23px; margin-bottom: 8px; }
+  .step p { margin: 0; color: var(--ink-soft); }
+
+  /* ---------- app ---------- */
+  .tabs { display: inline-flex; background: #ebe3d4; border-radius: 999px; padding: 5px; margin-bottom: 26px; }
+  .tab { border: none; background: transparent; padding: 11px 22px; border-radius: 999px; font: 600 15px 'Inter', sans-serif; color: var(--ink-soft); cursor: pointer; }
+  .tab.active { background: var(--paper); color: var(--teal-dark); box-shadow: 0 2px 8px rgba(0, 0, 0, .06); }
+  .app-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 28px; align-items: start; }
+  .card { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 28px; box-shadow: var(--shadow); }
+  .pane { display: none; } .pane.active { display: block; }
+  .form-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
+
+  .drop { border: 2px dashed #d4c5aa; border-radius: 18px; padding: 34px 20px; text-align: center; cursor: pointer; background: #fff; transition: border-color .15s, background .15s; margin-top: 8px; }
+  .drop.over { border-color: var(--teal); background: var(--mint); }
+  .drop .big-ico { font-size: 36px; }
+  .drop strong { display: block; font-size: 16px; margin: 6px 0 2px; color: var(--ink); }
+  .drop small { color: var(--muted); font-weight: 400; }
+  .drop img { max-width: 100%; max-height: 220px; border-radius: 12px; display: block; margin: 0 auto 10px; }
+  .drop-name { font-size: 13px; color: var(--ink-soft); font-weight: 500; }
+
+  /* result area */
+  #result { min-height: 520px; }
+  .empty { border: 2px dashed #d4c5aa; border-radius: var(--radius); padding: 70px 30px; text-align: center; background: rgba(255, 253, 248, .6); }
+  .empty .rx { font-size: 64px; }
+  .empty h3 { font-size: 26px; margin: 10px 0 8px; color: var(--teal-dark); }
+  .empty p { color: var(--muted); margin: 0 0 22px; }
+  .loading { text-align: center; padding: 110px 30px; }
+  .spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--mint); border-top-color: var(--teal); animation: spin .9s linear infinite; margin: 0 auto 22px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-family: 'Fraunces', serif; font-size: 22px; color: var(--teal-dark); margin: 0; }
+
+  .slip { background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius); padding: 30px 32px; box-shadow: var(--shadow); animation: rise .45s ease; }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .rx { font-family: 'Fraunces', serif; color: var(--teal); line-height: 1; font-size: 54px; }
+  .slip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 16px; margin-bottom: 18px; }
+  .slip-meta { text-align: right; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; }
+  .slip-meta b { color: var(--ink); font-size: 16px; }
+  .slip .eyebrow { margin: 20px 0 8px; }
+  .diag { font-family: 'Fraunces', serif; font-size: 23px; color: var(--teal-dark); margin: 0; line-height: 1.3; }
+  .move { background: var(--teal); color: #fff; border-radius: 18px; padding: 18px 20px; margin: 20px 0 6px; }
+  .move .eyebrow { color: #bfe7df; margin: 0 0 6px; }
+  .move p:last-child { margin: 0; font-size: 18px; font-weight: 500; }
+  .pill-time { background: #fff4ec; border: 1px solid #fbd3bc; color: #9a3d1a; border-radius: 12px; padding: 11px 14px; margin-top: 12px; font-size: 14px; }
+  .bubble { background: #dcf8c6; border-radius: 16px 16px 16px 4px; padding: 13px 16px; display: inline-block; max-width: 100%; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .slip ul { margin: 0; padding-left: 20px; color: var(--ink-soft); }
+  .slip li { margin: 5px 0; }
+  .warn { background: #fdf0ee; border-left: 4px solid #dc4a3a; border-radius: 12px; padding: 2px 16px 14px; margin-top: 20px; }
+  .warn .eyebrow { color: #b4321f; }
+  .urgent { background: #dc4a3a; color: #fff; border-radius: 14px; padding: 14px 16px; font-weight: 600; margin-bottom: 6px; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact { background: var(--cream); border-radius: 12px; padding: 10px 14px; }
+  .fact small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  .fact b { font-weight: 600; }
+  .terms { display: grid; gap: 10px; }
+  .term { background: var(--cream); border-radius: 12px; padding: 12px 14px; }
+  .term b { display: block; color: var(--teal-dark); }
+  .term span { color: var(--ink-soft); font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .act { flex: 1 1 180px; text-align: center; padding: 14px 16px; border-radius: 14px; color: #fff; text-decoration: none; font-weight: 600; transition: transform .15s; }
+  .act:hover { transform: translateY(-2px); }
+  .act.wa { background: #1fae55; } .act.maps { background: #2f62d6; } .act.cal { background: #d9473a; } .act.call { background: var(--teal-dark); }
+  .push { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--teal-dark); text-align: center; margin: 26px 0 4px; }
+  .sign { text-align: right; color: var(--teal); font-weight: 600; margin: 0; }
+  .sign span { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .example-tag { display: inline-block; background: var(--mint); color: var(--teal-dark); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .error-box { background: #fdf0ee; border: 1px solid #f2c4bc; color: #8f2a1b; border-radius: var(--radius); padding: 26px; }
+  .error-box h3 { font-size: 22px; margin-bottom: 6px; }
+
+  /* safety */
+  .safety { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .safety .card h3 { font-size: 24px; margin-bottom: 14px; }
+  .safety ul { list-style: none; padding: 0; margin: 0; }
+  .safety li { padding: 10px 0 10px 34px; position: relative; border-top: 1px solid var(--line); color: var(--ink-soft); }
+  .safety li:first-child { border-top: none; }
+  .safety .yes li::before { content: '✓'; position: absolute; left: 4px; color: var(--teal); font-weight: 700; }
+  .safety .no li::before { content: '✕'; position: absolute; left: 4px; color: #c2412f; font-weight: 700; }
+  .emergency { margin-top: 22px; background: var(--teal-dark); color: #fff; border-radius: var(--radius); padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .emergency h3 { font-size: 24px; }
+  .emergency p { margin: 4px 0 0; color: #bfe7df; }
+  .emergency a { background: #fff; color: var(--teal-dark); }
+
+  /* footer */
+  footer { background: var(--ink); color: #c9d3d0; padding: 56px 0 40px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; }
+  footer .logo { color: #fff; }
+  footer p { margin: 10px 0 0; max-width: 380px; font-size: 14px; }
+  footer h4 { color: #fff; margin: 0 0 10px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+  footer ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  footer li { margin: 6px 0; }
+  footer a { text-decoration: none; } footer a:hover { color: #fff; }
+  .fine { border-top: 1px solid rgba(255, 255, 255, .1); margin-top: 36px; padding-top: 20px; font-size: 13px; color: #8fa09b; width: 100%; }
+
+  /* responsive */
+  @media (max-width: 960px) {
+    .hero .wrap, .app-grid { grid-template-columns: 1fr; }
+    .hero-art { height: 420px; }
+    .reasons, .steps { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    .hero { padding: 40px 0 56px; }
+    .hero-art { display: none; }
+    section { padding: 60px 0; }
+    .reasons, .steps, .safety, .two, .facts { grid-template-columns: 1fr; }
+    .card, .slip { padding: 22px 18px; }
+    .conn-btn .lbl { display: none; }
+    .conn-panel { right: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <span class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg>
+      </span>
+      Stuck Doctor
+    </a>
+    <nav class="nav-links">
+      <a href="#why">Why we wait</a>
+      <a href="#how">How it works</a>
+      <a href="#app">Try it</a>
+      <a href="#safety">Safety</a>
+    </nav>
+    <button class="conn-btn" id="connBtn" aria-expanded="false" aria-controls="connPanel">
+      <span class="dot" id="connDot"></span><span class="lbl" id="connLabel">Not connected</span>
+    </button>
+  </div>
+  <div class="conn-panel" id="connPanel">
+    <h3>Connect the AI</h3>
+    <p>Run the Stuck Doctor notebook in Colab, copy the <b>gradio.live</b> link it prints, and paste it here.</p>
+    <div class="conn-row">
+      <input type="url" id="connUrl" placeholder="https://xxxx.gradio.live" aria-label="Backend link">
+      <button class="btn btn-primary btn-small" id="connGo">Connect</button>
+    </div>
+    <div class="conn-msg" id="connMsg"></div>
+  </div>
+</header>
+
+<main id="top">
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="badge">🎃 Built at <b>Hacktoberfest 2026</b> · Powered by Gemma</span>
+      <h1>The hardest part of seeing a doctor is <em>starting.</em></h1>
+      <p class="lede">Stuck Doctor figures out <i>why</i> you keep putting it off, gives you one tiny step you can do in two minutes, and hands you the message, the map and the reminder to actually do it.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#app" data-tab="stuck">Get unstuck →</a>
+        <a class="btn btn-ghost" href="#app" data-tab="doc">Upload a document</a>
+      </div>
+      <div class="trust"><span>Not medical advice</span><span>English · Hinglish · Bengali</span><span>Free &amp; open source</span></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="mock">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px dashed var(--line);padding-bottom:14px">
+          <div class="rx">℞</div>
+          <div style="text-align:right;font-size:13px;color:var(--muted)">Patient<br><b style="color:var(--ink);font-size:15px">Ear ache · 2 weeks</b></div>
+        </div>
+        <p class="eyebrow" style="margin-top:18px">Diagnosis</p>
+        <p style="font-family:'Fraunces',serif;font-size:21px;color:var(--teal-dark);margin:0;line-height:1.3">You're stuck in "it's probably nothing."</p>
+        <div class="mock-move"><small>Your 2-minute first move</small>Find one ENT clinic near you and save its number.</div>
+        <div class="mock-bubble">Namaste! Kya kal subah ka appointment mil sakta hai? 🙏</div>
+        <div class="mock-line" style="width:70%;margin-top:20px"></div>
+        <div class="mock-line" style="width:45%"></div>
+      </div>
+      <div class="float f1">💬 Message ready</div>
+      <div class="float f2">📅 Reminder set · 7 PM</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY ================= -->
+<section class="alt" id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Why we wait</p>
+      <h2>Putting off the doctor isn't laziness. It's six different problems.</h2>
+      <p>Each one needs a different first step. Pick the one that sounds like you.</p>
+    </div>
+    <div class="reasons" id="reasons"></div>
+  </div>
+</section>
+
+<!-- ================= HOW ================= -->
+<section id="how">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">How it works</p>
+      <h2>From "I'll do it later" to "done" in three taps.</h2>
+    </div>
+    <div class="steps">
+      <div class="step"><h3>Tell it why</h3><p>Say what you're avoiding and pick the reason. Or upload a prescription, report or clinic card you've been ignoring.</p></div>
+      <div class="step"><h3>Get your prescription</h3><p>Gemma names the kind of stuck you're in and gives one 2-minute move, the best time to do it, and questions to ask.</p></div>
+      <div class="step"><h3>Tap to act</h3><p>Send the booking message on WhatsApp, find the right doctor on Maps, and set a calendar reminder, without typing a thing.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<section class="alt" id="app">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Try it</p>
+      <h2>Let's get you unstuck.</h2>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-pane="stuck" aria-selected="true">🩺 I'm stuck</button>
+      <button class="tab" role="tab" data-pane="doc" aria-selected="false">📄 I have a document</button>
+    </div>
+
+    <div class="app-grid">
+      <div class="card">
+        <!-- stuck form -->
+        <form class="pane active" id="pane-stuck">
+          <label class="field">What are you putting off?
+            <textarea id="task" placeholder="e.g. seeing a doctor about my ear ache that's been going on for 2 weeks"></textarea>
+          </label>
+          <label class="field">Why are you stuck?
+            <select id="reason"></select>
+          </label>
+          <label class="field">When will you take the first step?
+            <select id="when">
+              <option>I'm not sure, guide me</option>
+              <option>In 1 hour</option>
+              <option>Tonight (7 PM)</option>
+              <option>Tomorrow morning (10 AM)</option>
+              <option>This Saturday (11 AM)</option>
+            </select>
+          </label>
+          <div class="field">Message language
+            <div class="seg" data-name="lang1"></div>
+          </div>
+          <label class="field">Anything else? <span style="font-weight:400;color:var(--muted)">(optional)</span>
+            <input type="text" id="details" placeholder="e.g. I've delayed this for two months">
+          </label>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goStuck">Get my prescription 💊</button>
+          <p class="form-note">Stuck Doctor doesn't diagnose or treat. It helps you get to someone who can.</p>
+        </form>
+
+        <!-- document form -->
+        <form class="pane" id="pane-doc">
+          <div class="field">Upload a photo of your document
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a photo">
+              <div id="dropInner">
+                <div class="big-ico">📄</div>
+                <strong>Drop a photo here, or tap to choose</strong>
+                <small>Prescription, test report, clinic card or bill · JPG or PNG</small>
+              </div>
+            </div>
+            <input type="file" id="file" accept="image/*" hidden>
+          </div>
+          <div class="field">Message language
+            <div class="seg" data-name="lang2"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goDoc">Read my document 🔍</button>
+          <p class="form-note">It tells you what's written and what to ask. It won't interpret your results.</p>
+        </form>
+      </div>
+
+      <div id="result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SAFETY ================= -->
+<section id="safety">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Safety</p>
+      <h2>A nudge, not a doctor.</h2>
+      <p>Stuck Doctor is built to get you <i>to</i> care, never to replace it.</p>
+    </div>
+    <div class="safety">
+      <div class="card yes"><h3>Stuck Doctor will</h3>
+        <ul><li>Help you understand why you're avoiding it</li><li>Give you one tiny, doable first step</li><li>Write the booking message for you</li><li>Point you to the right kind of doctor nearby</li><li>Flag warning signs that mean "go sooner"</li></ul>
+      </div>
+      <div class="card no"><h3>Stuck Doctor won't</h3>
+        <ul><li>Diagnose what's wrong with you</li><li>Suggest medicines, doses or home remedies</li><li>Interpret your test results</li><li>Book appointments or know a doctor's availability</li><li>Replace a real doctor, ever</li></ul>
+      </div>
+    </div>
+    <div class="emergency">
+      <div><h3>Is it an emergency?</h3><p>Chest pain, trouble breathing, heavy bleeding or fainting: don't wait. Get help now.</p></div>
+      <a class="btn" href="tel:112">📞 Call 112</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#top">
+        <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>
+        Stuck Doctor
+      </a>
+      <p>For everyone who's said "I'll go next week" for the fifth week in a row. Built in one day at Hacktoberfest 2026.</p>
+    </div>
+    <div>
+      <h4>Built with</h4>
+      <ul><li><a href="https://ai.google.dev/gemma" target="_blank" rel="noopener">Gemma</a></li><li><a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a></li><li><a href="https://gradio.app" target="_blank" rel="noopener">Gradio</a></li><li>Google Colab</li></ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul><li><a href="https://github.com/KK-Dev0/Stuck_Doctor" target="_blank" rel="noopener">GitHub repo</a></li><li><a href="#safety">Safety</a></li><li><a href="#app">Try it</a></li></ul>
+    </div>
+    <div class="fine">Not medical advice. Code under the MIT License. Gemma is subject to Google's Gemma terms of use. AI assistance was used in building this project.</div>
+  </div>
+</footer>
+
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+/* ---------- data ---------- */
+const REASONS = [
+  ["😰", "Scared of bad news", "What if it's something serious?"],
+  ["📞", "I hate calling to book", "Phone calls feel like a boss fight."],
+  ["🤷", "It's probably nothing", "It'll go away on its own… right?"],
+  ["🧭", "Don't know which doctor to see", "Skin? ENT? General? No idea."],
+  ["⏳", "Worried about cost or time", "Fees, queues, a whole day gone."],
+  ["🙈", "It feels awkward or embarrassing", "How do I even say this out loud?"],
+];
+const LANGS = ["English", "Hinglish", "Bengali"];
+const LOADING = ["Reading your situation…", "Diagnosing the stuck…", "Finding your first move…", "Writing your message…"];
+
+const EXAMPLE = {
+  example: true, task: "Ear ache for 2 weeks", date: "Today", urgent: false,
+  diagnosis: "You're stuck in \"it's probably nothing\": hoping it fades so you never have to deal with it.",
+  first_move: "Open Google Maps, find one ENT clinic near you, and save its number in your phone.",
+  guided: true, chosen: "Tonight (7 PM)", why_this_time: "Evenings are quieter, and booking tonight means you could be seen tomorrow.",
+  message: "Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?",
+  questions: ["What could be causing this?", "Do I need any tests?", "What should I avoid until it heals?"],
+  while_you_wait: ["Rest in a quiet place and avoid loud music.", "Keep your head slightly raised while lying down."],
+  see_sooner_if: ["The pain suddenly gets much worse", "You get a high fever", "There's fluid or blood from the ear"],
+  push: "Two minutes tonight saves you two more weeks of wondering.", doctor_type: "ENT specialist",
+  links: { whatsapp: "https://wa.me/?text=" + encodeURIComponent("Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?"),
+           maps: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("ENT specialist near me"), calendar: "" }
+};
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const ul = (a) => `<ul>${(Array.isArray(a) ? a : []).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+const safeUrl = (u) => typeof u === "string" && /^(https:|tel:)/.test(u) ? u : "";
+const act = (url, cls, label) => safeUrl(url) ? `<a class="act ${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>` : "";
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+
+/* ---------- build UI pieces ---------- */
+$("#reasons").innerHTML = REASONS.map(([ico, title, line], i) =>
+  `<button class="reason" data-i="${i}"><div class="ico">${ico}</div><h3>${esc(title)}</h3><p>${esc(line)}</p><span class="go">This is me →</span></button>`).join("");
+$("#reason").innerHTML = REASONS.map(([, t]) => `<option>${esc(t)}</option>`).join("");
+document.querySelectorAll(".seg").forEach((seg) => {
+  const name = seg.dataset.name;
+  seg.innerHTML = LANGS.map((l, i) => `<label><input type="radio" name="${name}" value="${l}" ${i === 0 ? "checked" : ""}><span>${l}</span></label>`).join("");
+});
+const lang = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+
+document.querySelectorAll(".reason").forEach((b) => b.addEventListener("click", () => {
+  $("#reason").value = REASONS[b.dataset.i][1];
+  showTab("stuck");
+  $("#app").scrollIntoView({ behavior: "smooth" });
+  setTimeout(() => $("#task").focus(), 500);
+}));
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach((t) => { const on = t.dataset.pane === name; t.classList.toggle("active", on); t.setAttribute("aria-selected", on); });
+  document.querySelectorAll(".pane").forEach((p) => p.classList.toggle("active", p.id === "pane-" + name));
+  renderEmpty(name);
+}
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.pane)));
+document.querySelectorAll("[data-tab]").forEach((a) => a.addEventListener("click", () => showTab(a.dataset.tab)));
+
+/* ---------- nav ---------- */
+addEventListener("scroll", () => $("#nav").classList.toggle("scrolled", scrollY > 10));
+$("#connBtn").addEventListener("click", () => {
+  const open = $("#connPanel").classList.toggle("open");
+  $("#connBtn").setAttribute("aria-expanded", open);
+  if (open) $("#connUrl").focus();
+});
+
+/* ---------- backend connection ---------- */
+let client = null;
+function setStatus(state, msg = "", ok = false) {
+  $("#connDot").className = "dot " + (state === "on" ? "on" : state === "busy" ? "busy" : "");
+  $("#connLabel").textContent = state === "on" ? "AI connected" : state === "busy" ? "Connecting…" : "Not connected";
+  $("#connMsg").textContent = msg;
+  $("#connMsg").className = "conn-msg " + (msg ? (ok ? "ok" : "err") : "");
+}
+async function connect(url) {
+  url = (url || "").trim().replace(/\/+$/, "");
+  if (!/^https:\/\/.+/.test(url)) { setStatus("off", "Paste the full https://… link from Colab."); return false; }
+  setStatus("busy");
+  try {
+    client = await Client.connect(url);
+    store.set("sd_backend", url);
+    $("#connUrl").value = url;
+    setStatus("on", "Connected! You're ready to go.", true);
+    setTimeout(() => $("#connPanel").classList.remove("open"), 900);
+    return true;
+  } catch (e) {
+    client = null;
+    setStatus("off", "Couldn't connect. Is the Colab notebook still running? Links change every time you re-run it.");
+    return false;
+  }
+}
+$("#connGo").addEventListener("click", () => connect($("#connUrl").value));
+$("#connUrl").addEventListener("keydown", (e) => { if (e.key === "Enter") connect($("#connUrl").value); });
+const startUrl = new URLSearchParams(location.search).get("backend") || store.get("sd_backend");
+if (startUrl) { $("#connUrl").value = startUrl; connect(startUrl); }
+
+function needClient() {
+  if (client) return true;
+  $("#connPanel").classList.add("open");
+  setStatus("off", "Connect the AI first: paste your gradio.live link.");
+  scrollTo({ top: 0, behavior: "smooth" });
+  return false;
+}
+
+/* ---------- result rendering ---------- */
+function renderEmpty(tab = "stuck") {
+  $("#result").innerHTML = tab === "doc"
+    ? `<div class="empty"><div class="rx">📄</div><h3>Your document, in plain words</h3><p>Upload a photo and Stuck Doctor will pull out the clinic, doctor, phone number and follow-up date, plus what to ask.</p></div>`
+    : `<div class="empty"><div class="rx">℞</div><h3>Your prescription will appear here</h3><p>Fill in the form and tap <b>Get my prescription</b>.</p><button class="btn btn-ghost btn-small" id="exampleBtn">See an example</button></div>`;
+  const ex = $("#exampleBtn");
+  if (ex) ex.addEventListener("click", () => renderRx(EXAMPLE));
+}
+let loadTimer;
+function renderLoading() {
+  let i = 0;
+  $("#result").innerHTML = `<div class="card loading"><div class="spinner"></div><p id="loadMsg">${LOADING[0]}</p></div>`;
+  clearInterval(loadTimer);
+  loadTimer = setInterval(() => { const el = $("#loadMsg"); if (!el) return clearInterval(loadTimer); el.textContent = LOADING[++i % LOADING.length]; }, 1800);
+}
+function renderError(msg) {
+  clearInterval(loadTimer);
+  $("#result").innerHTML = `<div class="error-box"><h3>Hmm, that didn't work 😵</h3><p>${esc(msg)}</p></div>`;
+}
+function renderRx(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  const L = d.links || {};
+  $("#result").innerHTML = `
+  <article class="slip">
+    ${d.example ? `<span class="example-tag">Example prescription</span>` : ""}
+    <div class="slip-head"><div class="rx">℞</div>
+      <div class="slip-meta"><span>Patient</span><b>${esc(d.task)}</b><span>${esc(d.date)}</span></div></div>
+    ${d.urgent ? `<div class="urgent">⚠️ This sounds like it needs attention soon. Please see a doctor or get medical help today. In an emergency, call 112.</div>` : ""}
+    <p class="eyebrow">Diagnosis</p><p class="diag">${esc(d.diagnosis)}</p>
+    <div class="move"><p class="eyebrow">Your 2-minute first move</p><p>${esc(d.first_move)}</p></div>
+    ${d.guided ? `<div class="pill-time">🕒 Best time: <b>${esc(d.chosen)}</b> · ${esc(d.why_this_time)}</div>` : ""}
+    <p class="eyebrow">Message to send</p><div class="bubble">${esc(d.message)}</div>
+    <div class="two">
+      <div><p class="eyebrow">Ask the doctor</p>${ul(d.questions)}</div>
+      <div><p class="eyebrow">While you wait</p>${ul(d.while_you_wait)}</div>
+    </div>
+    <div class="warn"><p class="eyebrow">See a doctor sooner if</p>${ul(d.see_sooner_if)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.maps, "maps", "📍 Find a " + (d.doctor_type || "doctor"))}
+      ${act(L.calendar, "cal", "📅 Remind me · " + (d.chosen || ""))}
+    </div>
+    <p class="push">“${esc(d.push)}”</p>
+    <p class="sign">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+}
+function renderDoc(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  if (d.doc_type === "unreadable") return renderError(d.summary || "I couldn't read that photo. Try a clearer, well-lit picture.");
+  const L = d.links || {};
+  const fact = (k, v) => v ? `<div class="fact"><small>${k}</small><b>${esc(v)}</b></div>` : "";
+  const terms = (Array.isArray(d.explained) ? d.explained : []).filter((t) => t && t.term);
+  const flagged = Array.isArray(d.flagged) ? d.flagged : [];
+  const facts = fact("Clinic", d.clinic_name) + fact("Doctor", d.doctor_name) + fact("Phone", d.phone) + fact("Follow-up", d.follow_up);
+  $("#result").innerHTML = `
+  <article class="slip">
+    <div class="slip-head"><div class="rx">📄</div>
+      <div class="slip-meta"><span>Document</span><b>${esc(d.doc_type)}</b></div></div>
+    ${d.is_scan ? `<div class="pill-time" style="margin-top:0">🩻 This looks like a scan image (like an X-ray or MRI). Reading scans needs a trained doctor, and an AI guess could be dangerously wrong, so Stuck Doctor won't try. Please show it to a doctor. If you also have the written report that came with it, upload that and I'll explain it in plain words.</div>` : ""}
+    <p class="eyebrow">What it says</p><p class="diag" style="font-size:19px">${esc(d.summary)}</p>
+    ${terms.length ? `<p class="eyebrow">In plain words</p><div class="terms">${terms.map((t) => `<div class="term"><b>${esc(t.term)}</b><span>${esc(t.meaning)}</span></div>`).join("")}</div>` : ""}
+    ${flagged.length ? `<div class="warn"><p class="eyebrow">Marked as outside the normal range on your report</p>${ul(flagged)}<p style="margin:8px 0 0;font-size:14px;color:var(--ink-soft)">Only your doctor can say what these mean for you. Take this report to them.</p></div>` : ""}
+    ${facts ? `<p class="eyebrow">Details found</p><div class="facts">${facts}</div>` : ""}
+    <p class="eyebrow">Ask the doctor</p>${ul(d.questions)}
+    <p class="eyebrow">Message to send</p><div class="bubble">${esc(d.message)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.call, "call", "📞 Call clinic")}
+      ${act(L.maps, "maps", "📍 Find clinic")}
+    </div>
+    <p class="sign" style="margin-top:22px">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+}
+
+/* ---------- submit: stuck ---------- */
+$("#pane-stuck").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const task = $("#task").value.trim();
+  if (!task) { $("#task").focus(); return; }
+  if (!needClient()) return;
+  const btn = $("#goStuck"); btn.disabled = true;
+  renderLoading();
+  try {
+    const res = await client.predict("/prescribe", [task, $("#reason").value, $("#when").value, lang("lang1"), $("#details").value]);
+    renderRx(res.data[0]);
+  } catch (err) {
+    renderError("The AI didn't answer. Check the Colab notebook is still running, then try again.");
+  } finally { btn.disabled = false; }
+});
+
+/* ---------- upload ---------- */
+let chosenFile = null;
+const drop = $("#drop"), fileInput = $("#file");
+function setFile(f) {
+  if (!f) return;
+  if (!f.type.startsWith("image/")) { renderError("Please upload a photo (JPG or PNG). For a PDF, take a screenshot of the page."); return; }
+  if (f.size > 8 * 1024 * 1024) { renderError("That photo is over 8 MB. Try a smaller one."); return; }
+  chosenFile = f;
+  const url = URL.createObjectURL(f);
+  $("#dropInner").innerHTML = `<img src="${url}" alt="Document preview"><span class="drop-name">${esc(f.name)} · tap to change</span>`;
+}
+drop.addEventListener("click", () => fileInput.click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
+
+$("#pane-doc").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!chosenFile) { drop.focus(); drop.classList.add("over"); setTimeout(() => drop.classList.remove("over"), 600); return; }
+  if (!needClient()) return;
+  const btn = $("#goDoc"); btn.disabled = true;
+  renderLoading();
+  try {
+    const res = await client.predict("/read_document", [handle_file(chosenFile), lang("lang2")]);
+    renderDoc(res.data[0]);
+  } catch (err) {
+    renderError("The AI couldn't read the document. Check the Colab notebook is still running, then try again.");
+  } finally { btn.disabled = false; }
+});
+
+renderEmpty("stuck");
+</script>
+</body>
+</html>
