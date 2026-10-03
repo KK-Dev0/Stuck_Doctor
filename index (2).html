@@ -1,0 +1,927 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stuck Doctor · Get unstuck, get seen</title>
+<meta name="description" content="Stuck Doctor helps people who keep putting off the doctor take the first tiny step. Built with Gemma at Hacktoberfest 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  // set theme before paint (saved choice, otherwise follow the device)
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem("sd_theme"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+  })();
+</script>
+<style>
+  /* ---------- theme tokens ---------- */
+  :root, [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f1e7; --surface: #fffdf8; --surface-2: #f3ecdf; --field: #ffffff;
+    --text: #1c2a28; --text-soft: #3f4d4a; --muted: #6f756f; --line: #e6dcc9; --dash: #d4c5aa;
+    --brand: #0f6b63; --brand-deep: #0a4a44; --on-brand: #ffffff; --on-brand-soft: #bfe7df;
+    --accent: #0f6b63; --heading-accent: #0a4a44;
+    --clay: #e0643a; --clay-dark: #c24f28;
+    --bubble: #dcf8c6; --bubble-text: #1c2a28;
+    --warn-bg: #fdf0ee; --warn-line: #dc4a3a; --warn-text: #b4321f;
+    --pill-bg: #fff4ec; --pill-line: #fbd3bc; --pill-text: #9a3d1a;
+    --mint: #dff1ec; --tabs: #ebe3d4;
+    --nav: rgba(246, 241, 231, .88);
+    --shadow: 0 18px 40px rgba(10, 74, 68, .10);
+    --ok: #15803d; --ok-bg: #e5f5ea; --hi: #b4321f; --hi-bg: #fde4e0; --lo: #9a5b00; --lo-bg: #fdf0d5; --na: #6f756f; --na-bg: #eee8dc;
+    --footer: #1c2a28;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1514; --surface: #162120; --surface-2: #1d2a28; --field: #111a19;
+    --text: #e7efed; --text-soft: #b8c6c2; --muted: #8b9a96; --line: #2a3a37; --dash: #3a4d49;
+    --brand: #13857a; --brand-deep: #0d5f57; --on-brand: #ffffff; --on-brand-soft: #c3eee6;
+    --accent: #5fd0c0; --heading-accent: #9be6da;
+    --clay: #ee7448; --clay-dark: #d85f33;
+    --bubble: #1f4630; --bubble-text: #e3f6e8;
+    --warn-bg: #2b1a18; --warn-line: #f0705f; --warn-text: #ff9c8d;
+    --pill-bg: #2c1f15; --pill-line: #5a3a22; --pill-text: #ffc199;
+    --mint: #17332f; --tabs: #1d2a28;
+    --nav: rgba(14, 21, 20, .85);
+    --shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    --ok: #6ee7a0; --ok-bg: #173325; --hi: #ff9c8d; --hi-bg: #3a1c18; --lo: #ffd27a; --lo-bg: #33280f; --na: #8b9a96; --na-bg: #222e2c;
+    --footer: #090f0e;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 0; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
+
+  /* ---------- nav ---------- */
+  .nav { position: sticky; top: 0; z-index: 50; background: var(--nav); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .nav.scrolled { border-color: var(--line); }
+  .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .logo-mark { width: 38px; height: 38px; border-radius: 12px; background: var(--brand); display: grid; place-items: center; }
+  .nav-links { display: flex; gap: 26px; }
+  .nav-links a { text-decoration: none; color: var(--text-soft); font-weight: 500; font-size: 15px; }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 10px; }
+  .pill-btn { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; font: 500 14px 'Inter', sans-serif; color: var(--text); cursor: pointer; }
+  .icon-btn { width: 40px; height: 40px; padding: 0; justify-content: center; font-size: 18px; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #c9b9a0; }
+  .dot.on { background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, .15); }
+  .dot.busy { background: #f59e0b; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
+
+  .conn-panel { position: absolute; right: 24px; top: 78px; width: min(420px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 20px; display: none; }
+  .conn-panel.open { display: block; }
+  .conn-panel h3 { font-size: 20px; margin-bottom: 6px; }
+  .conn-panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .conn-row { display: flex; gap: 8px; }
+  .conn-row input { flex: 1; margin-top: 0; }
+  .conn-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .conn-msg.ok { color: var(--ok); } .conn-msg.err { color: var(--hi); }
+
+  /* ---------- buttons & fields ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px; padding: 14px 22px; font: 600 16px 'Inter', sans-serif; cursor: pointer; text-decoration: none; transition: transform .15s, box-shadow .15s, background .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--clay); color: #fff; box-shadow: 0 10px 24px rgba(224, 100, 58, .28); }
+  .btn-primary:hover { background: var(--clay-dark); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--text); }
+  .btn-soft { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+  .btn-small { padding: 10px 16px; font-size: 14px; border-radius: 12px; }
+  .btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  label.field, div.field { display: block; font-weight: 600; font-size: 14px; color: var(--heading-accent); margin: 0 0 18px; }
+  input[type=text], input[type=url], textarea, select {
+    width: 100%; margin-top: 8px; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line);
+    background: var(--field); color: var(--text); font: 400 15px 'Inter', sans-serif; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 84px; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(15, 107, 99, .16); }
+  .seg { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: inline-block; padding: 10px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--field); font-weight: 500; color: var(--text-soft); cursor: pointer; transition: all .15s; }
+  .seg input:checked + span { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+  .seg input:focus-visible + span { box-shadow: 0 0 0 4px rgba(15, 107, 99, .2); }
+
+  /* ---------- hero ---------- */
+  .hero { padding: 72px 0 88px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 5.6vw, 68px); }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero .lede { font-size: 19px; color: var(--text-soft); max-width: 540px; margin: 22px 0 32px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 14px; }
+  .trust span::before { content: '✓'; color: var(--accent); font-weight: 700; margin-right: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--text-soft); margin-bottom: 22px; }
+  .badge b { color: var(--clay); }
+  .hero-art { position: relative; height: 470px; }
+  .mock { position: absolute; inset: 20px 30px 20px 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow); padding: 28px; transform: rotate(2.5deg); }
+  .mock-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px dashed var(--line); padding-bottom: 14px; }
+  .mock-head div:last-child { text-align: right; font-size: 13px; color: var(--muted); }
+  .mock-head b { color: var(--text); font-size: 15px; }
+  .mock-diag { font-family: 'Fraunces', serif; font-size: 21px; color: var(--heading-accent); margin: 0; line-height: 1.3; }
+  .mock-line { height: 10px; border-radius: 6px; background: var(--surface-2); margin: 12px 0; }
+  .mock-move { background: var(--brand); border-radius: 16px; padding: 16px; margin: 20px 0; color: var(--on-brand); font-weight: 500; }
+  .mock-move small { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: 11px; color: var(--on-brand-soft); margin-bottom: 4px; }
+  .mock-bubble { background: var(--bubble); color: var(--bubble-text); border-radius: 14px 14px 14px 4px; padding: 12px 14px; font-size: 14px; max-width: 85%; }
+  .float { position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; box-shadow: var(--shadow); font-size: 14px; font-weight: 600; animation: bob 4s ease-in-out infinite; }
+  .float.f1 { left: 0; top: 70px; } .float.f2 { right: 0; bottom: 70px; animation-delay: -2s; } .float.f3 { right: 10px; top: 4px; animation-delay: -1s; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+
+  /* ---------- sections ---------- */
+  section { padding: 88px 0; }
+  .sec-head { max-width: 660px; margin-bottom: 44px; }
+  .sec-head h2 { font-size: clamp(32px, 4vw, 46px); }
+  .sec-head p { color: var(--text-soft); font-size: 17px; margin: 14px 0 0; }
+  .alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .reasons, .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .reason, .feature { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 22px; padding: 24px; font: inherit; color: inherit; transition: transform .18s, border-color .18s, box-shadow .18s; }
+  .reason { cursor: pointer; }
+  .reason:hover, .feature:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--shadow); }
+  .reason .ico, .feature .ico { font-size: 28px; }
+  .reason h3, .feature h3 { font-size: 21px; margin: 12px 0 6px; }
+  .reason p, .feature p { margin: 0; color: var(--muted); }
+  .reason .go { display: inline-block; margin-top: 14px; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .feature .tag { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--clay); text-transform: uppercase; letter-spacing: .08em; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; counter-reset: step; }
+  .step { position: relative; padding-top: 64px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 0; width: 46px; height: 46px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font: 600 20px 'Fraunces', serif; }
+  .step h3 { font-size: 23px; margin-bottom: 8px; }
+  .step p { margin: 0; color: var(--text-soft); }
+
+  /* ---------- app ---------- */
+  .tabs { display: inline-flex; background: var(--tabs); border-radius: 999px; padding: 5px; margin-bottom: 26px; flex-wrap: wrap; }
+  .tab { border: none; background: transparent; padding: 11px 22px; border-radius: 999px; font: 600 15px 'Inter', sans-serif; color: var(--text-soft); cursor: pointer; }
+  .tab.active { background: var(--surface); color: var(--heading-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+  .app-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 28px; align-items: start; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 28px; box-shadow: var(--shadow); }
+  .alt .card { background: var(--bg); }
+  .pane { display: none; } .pane.active { display: block; }
+  .form-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
+  .drop { border: 2px dashed var(--dash); border-radius: 18px; padding: 34px 20px; text-align: center; cursor: pointer; background: var(--field); transition: border-color .15s, background .15s; margin-top: 8px; font-weight: 400; color: var(--text); }
+  .drop.over { border-color: var(--accent); background: var(--mint); }
+  .drop .big-ico { font-size: 36px; }
+  .drop strong { display: block; font-size: 16px; margin: 6px 0 2px; }
+  .drop small { color: var(--muted); }
+  .drop img { max-width: 100%; max-height: 220px; border-radius: 12px; display: block; margin: 0 auto 10px; }
+  .drop-name { font-size: 13px; color: var(--text-soft); }
+
+  #result { min-height: 520px; }
+  .empty { border: 2px dashed var(--dash); border-radius: 22px; padding: 70px 30px; text-align: center; }
+  .empty .rx { font-size: 64px; }
+  .empty h3 { font-size: 26px; margin: 10px 0 8px; color: var(--heading-accent); }
+  .empty p { color: var(--muted); margin: 0 0 22px; }
+  .loading { text-align: center; padding: 110px 30px; }
+  .spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--mint); border-top-color: var(--accent); animation: spin .9s linear infinite; margin: 0 auto 22px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-family: 'Fraunces', serif; font-size: 22px; color: var(--heading-accent); margin: 0; }
+
+  .slip { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 30px 32px; box-shadow: var(--shadow); animation: rise .45s ease; }
+  .alt .slip { background: var(--bg); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .rx { font-family: 'Fraunces', serif; color: var(--accent); line-height: 1; font-size: 54px; }
+  .slip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 16px; margin-bottom: 18px; }
+  .slip-meta { text-align: right; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; }
+  .slip-meta b { color: var(--text); font-size: 16px; }
+  .slip .eyebrow { margin: 22px 0 8px; }
+  .diag { font-family: 'Fraunces', serif; font-size: 23px; color: var(--heading-accent); margin: 0; line-height: 1.3; }
+  .move { background: var(--brand); color: var(--on-brand); border-radius: 18px; padding: 18px 20px; margin: 20px 0 6px; }
+  .move .eyebrow { color: var(--on-brand-soft); margin: 0 0 6px; }
+  .move p:last-child { margin: 0; font-size: 18px; font-weight: 500; }
+  .pill-time { background: var(--pill-bg); border: 1px solid var(--pill-line); color: var(--pill-text); border-radius: 12px; padding: 11px 14px; margin-top: 12px; font-size: 14px; }
+  .bubble { background: var(--bubble); color: var(--bubble-text); border-radius: 16px 16px 16px 4px; padding: 13px 16px; display: inline-block; max-width: 100%; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .slip ul { margin: 0; padding-left: 20px; color: var(--text-soft); }
+  .slip li { margin: 5px 0; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn-line); border-radius: 12px; padding: 2px 16px 14px; margin-top: 20px; }
+  .warn .eyebrow { color: var(--warn-text); }
+  .urgent { background: #dc4a3a; color: #fff; border-radius: 14px; padding: 14px 16px; font-weight: 600; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .urgent a { background: #fff; color: #b4321f; border-radius: 10px; padding: 8px 12px; text-decoration: none; font-weight: 700; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact, .term { background: var(--surface-2); border-radius: 12px; padding: 10px 14px; }
+  .fact small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  .terms { display: grid; gap: 10px; }
+  .term b { display: block; color: var(--heading-accent); }
+  .term span { color: var(--text-soft); font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .act { flex: 1 1 180px; text-align: center; padding: 14px 16px; border-radius: 14px; color: #fff; text-decoration: none; font-weight: 600; transition: transform .15s; border: none; font-family: inherit; font-size: 15px; cursor: pointer; }
+  .act:hover { transform: translateY(-2px); }
+  .act.wa { background: #1fae55; } .act.maps { background: #2f62d6; } .act.cal { background: #d9473a; } .act.call { background: var(--brand-deep); }
+  .act.alt1 { background: #7c4dbd; } .act.alt2 { background: #b8610f; } .act.alt3 { background: #0f7d8c; }
+  .extras-title { margin-top: 26px !important; }
+  .push { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--heading-accent); text-align: center; margin: 26px 0 4px; }
+  .sign { text-align: right; color: var(--accent); font-weight: 600; margin: 0; }
+  .sign span { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .example-tag { display: inline-block; background: var(--mint); color: var(--heading-accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .error-box { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); border-radius: 22px; padding: 26px; }
+  .error-box h3 { font-size: 22px; margin-bottom: 6px; }
+  .error-box p { color: var(--text-soft); }
+
+  /* lab table */
+  .lab-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .lab-summary span { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; }
+  .lab { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .lab th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .lab td { padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .lab td.val { font-weight: 600; white-space: nowrap; }
+  .lab td.rng { color: var(--muted); white-space: nowrap; }
+  .chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .chip.low { background: var(--lo-bg); color: var(--lo); } .chip.high { background: var(--hi-bg); color: var(--hi); }
+  .chip.normal { background: var(--ok-bg); color: var(--ok); } .chip.unknown { background: var(--na-bg); color: var(--na); }
+  .lab tr.flag td { background: color-mix(in srgb, var(--warn-bg) 60%, transparent); }
+  .lab-note { font-size: 14px; color: var(--text-soft); margin: 12px 0 0; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+
+  /* safety */
+  .safety { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .safety .card h3 { font-size: 24px; margin-bottom: 14px; }
+  .safety ul { list-style: none; padding: 0; margin: 0; }
+  .safety li { padding: 10px 0 10px 34px; position: relative; border-top: 1px solid var(--line); color: var(--text-soft); }
+  .safety li:first-child { border-top: none; }
+  .safety .yes li::before { content: '✓'; position: absolute; left: 4px; color: var(--accent); font-weight: 700; }
+  .safety .no li::before { content: '✕'; position: absolute; left: 4px; color: var(--hi); font-weight: 700; }
+  .emergency { margin-top: 22px; background: var(--brand-deep); color: #fff; border-radius: 22px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .emergency h3 { font-size: 24px; }
+  .emergency p { margin: 4px 0 0; color: var(--on-brand-soft); }
+  .emergency .btn { background: #fff; color: #0a4a44; }
+
+  /* footer */
+  footer { background: var(--footer); color: #c9d3d0; padding: 56px 0 100px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; }
+  footer .logo { color: #fff; }
+  footer p { margin: 10px 0 0; max-width: 380px; font-size: 14px; }
+  footer h4 { color: #fff; margin: 0 0 10px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+  footer ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  footer li { margin: 6px 0; }
+  footer a { text-decoration: none; } footer a:hover { color: #fff; }
+  .fine { border-top: 1px solid rgba(255, 255, 255, .1); margin-top: 36px; padding-top: 20px; font-size: 13px; color: #8fa09b; width: 100%; }
+
+  /* SOS */
+  .sos { position: fixed; right: 22px; bottom: 22px; z-index: 60; width: 66px; height: 66px; border-radius: 50%; border: none; background: #dc2626; color: #fff; font: 800 16px 'Inter', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 10px 28px rgba(220, 38, 38, .45); }
+  .sos::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid rgba(220, 38, 38, .45); animation: ring 2s infinite; }
+  @keyframes ring { 0% { transform: scale(.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+
+  /* modals */
+  .overlay { position: fixed; inset: 0; z-index: 100; background: rgba(5, 12, 11, .6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 24px; width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 26px; box-shadow: var(--shadow); animation: rise .3s ease; position: relative; }
+  .modal h3 { font-size: 26px; margin-bottom: 6px; }
+  .modal > p { color: var(--text-soft); margin: 0 0 18px; }
+  .close { position: absolute; right: 16px; top: 14px; border: none; background: var(--surface-2); color: var(--text); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+  .sos-grid { display: grid; gap: 10px; }
+  .sos-act { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; text-decoration: none; color: #fff; font-weight: 600; font-size: 17px; border: none; cursor: pointer; font-family: inherit; text-align: left; width: 100%; }
+  .sos-act small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
+  .sos-act .em { font-size: 28px; }
+  .sos-act.red { background: #dc2626; } .sos-act.dark { background: #7f1d1d; } .sos-act.green { background: #15803d; } .sos-act.blue { background: #1d4ed8; }
+  .sos-msg { font-size: 13px; color: var(--muted); margin-top: 12px; }
+
+  .note-modal { width: min(760px, 100%); text-align: center; padding: 44px 34px; }
+  .note-modal .eyebrow { margin-bottom: 18px; }
+  .note-text { font-family: 'Fraunces', serif; font-size: clamp(26px, 4vw, 38px); line-height: 1.35; color: var(--text); margin: 0 0 22px; }
+  .note-sub { color: var(--muted); font-size: 14px; }
+
+  .chat { display: flex; flex-direction: column; gap: 10px; min-height: 260px; max-height: 50vh; overflow-y: auto; padding: 6px 2px 10px; }
+  .msg { max-width: 82%; padding: 11px 15px; border-radius: 16px; font-size: 15px; animation: rise .25s ease; white-space: pre-wrap; }
+  .msg.them { background: var(--surface-2); color: var(--text); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg.me { background: var(--brand); color: var(--on-brand); border-bottom-right-radius: 4px; align-self: flex-end; }
+  .msg.typing { color: var(--muted); font-style: italic; }
+  .chat-row { display: flex; gap: 8px; margin-top: 10px; }
+  .chat-row input { margin-top: 0; flex: 1; }
+  .who { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .who .av { width: 46px; height: 46px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; font-size: 24px; }
+  .who b { display: block; } .who small { color: var(--muted); }
+
+  /* responsive */
+  @media (max-width: 960px) {
+    .hero .wrap, .app-grid { grid-template-columns: 1fr; }
+    .hero-art { height: 420px; }
+    .reasons, .steps, .features { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    .hero { padding: 40px 0 56px; }
+    .hero-art { display: none; }
+    section { padding: 60px 0; }
+    .reasons, .steps, .safety, .two, .facts, .features { grid-template-columns: 1fr; }
+    .card, .slip { padding: 22px 18px; }
+    .pill-btn .lbl { display: none; }
+    .conn-panel { right: 16px; }
+    .sos { width: 58px; height: 58px; right: 16px; bottom: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ================= NAV ================= -->
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <span class="logo-mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg>
+      </span>
+      Stuck Doctor
+    </a>
+    <nav class="nav-links">
+      <a href="#why">Why we wait</a>
+      <a href="#features">Features</a>
+      <a href="#app">Try it</a>
+      <a href="#safety">Safety</a>
+    </nav>
+    <div class="nav-right">
+      <button class="pill-btn icon-btn" id="themeBtn" aria-label="Switch theme" title="Switch light / dark">🌙</button>
+      <button class="pill-btn" id="connBtn" aria-expanded="false" aria-controls="connPanel">
+        <span class="dot" id="connDot"></span><span class="lbl" id="connLabel">Not connected</span>
+      </button>
+    </div>
+  </div>
+  <div class="conn-panel" id="connPanel">
+    <h3>Connect the AI</h3>
+    <p>Run the Stuck Doctor notebook in Colab, copy the <b>gradio.live</b> link it prints, and paste it here.</p>
+    <div class="conn-row">
+      <input type="url" id="connUrl" placeholder="https://xxxx.gradio.live" aria-label="Backend link">
+      <button class="btn btn-primary btn-small" id="connGo">Connect</button>
+    </div>
+    <div class="conn-msg" id="connMsg"></div>
+  </div>
+</header>
+
+<main id="top">
+<!-- ================= HERO ================= -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="badge">🎃 Built at <b>Hacktoberfest 2026</b> · Powered by Gemma</span>
+      <h1>The hardest part of seeing a doctor is <em>starting.</em></h1>
+      <p class="lede">Stuck Doctor figures out <i>why</i> you keep putting it off, gives you one tiny step, lets you rehearse the scary phone call, explains your reports in plain words, and has your back in an emergency.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#app" data-tab="stuck">Get unstuck →</a>
+        <a class="btn btn-ghost" href="#app" data-tab="doc">Explain my report</a>
+      </div>
+      <div class="trust"><span>Not medical advice</span><span>English · Hinglish · Bengali</span><span>Free &amp; open source</span></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-head"><div class="rx">℞</div><div>Patient<br><b>Ear ache · 2 weeks</b></div></div>
+        <p class="eyebrow" style="margin-top:18px">Diagnosis</p>
+        <p class="mock-diag">You're stuck in "it's probably nothing."</p>
+        <div class="mock-move"><small>Your 2-minute first move</small>Find one ENT clinic near you and save its number.</div>
+        <div class="mock-bubble">Namaste! Kya kal subah ka appointment mil sakta hai? 🙏</div>
+        <div class="mock-line" style="width:70%;margin-top:20px"></div>
+        <div class="mock-line" style="width:45%"></div>
+      </div>
+      <div class="float f1">💬 Message ready</div>
+      <div class="float f2">📅 Reminder set · 7 PM</div>
+      <div class="float f3">🎭 Call rehearsed</div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= WHY ================= -->
+<section class="alt" id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Why we wait</p>
+      <h2>Putting off the doctor isn't laziness. It's six different problems.</h2>
+      <p>Each one needs a different first step. Pick the one that sounds like you.</p>
+    </div>
+    <div class="reasons" id="reasons"></div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">What's inside</p>
+      <h2>Everything between "I should go" and actually going.</h2>
+    </div>
+    <div class="features">
+      <div class="feature"><div class="ico">🎭</div><h3>Rehearse the call</h3><p>Hate phone calls? Practise booking with Meera, an AI clinic receptionist, until it feels easy. Then make the real call.</p><span class="tag">Only here</span></div>
+      <div class="feature"><div class="ico">🗒️</div><h3>Show-the-doctor card</h3><p>Too awkward to say it out loud? Get a full-screen note in your words. Just turn your phone around.</p><span class="tag">For the shy</span></div>
+      <div class="feature"><div class="ico">🤝</div><h3>Bring a buddy</h3><p>A ready-to-send message asking a friend to come with you. Scary visits are easier with company.</p><span class="tag">One tap</span></div>
+      <div class="feature"><div class="ico">🧪</div><h3>Report decoder</h3><p>Upload a blood test photo. Every value is checked against the range printed on your report and marked low, normal or high.</p><span class="tag">Plain words</span></div>
+      <div class="feature"><div class="ico">🎒</div><h3>Visit bag</h3><p>What to carry so the trip isn't wasted: ID, old reports, your medicine list, and anything specific to your visit.</p><span class="tag">No second trips</span></div>
+      <div class="feature"><div class="ico">🚑</div><h3>SOS button</h3><p>Always one tap away: call an ambulance (108), emergency (112), share your live location on WhatsApp, or find the nearest hospital.</p><span class="tag">Always on</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= APP ================= -->
+<section class="alt" id="app">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Try it</p>
+      <h2>Let's get you unstuck.</h2>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-pane="stuck" aria-selected="true">🩺 I'm stuck</button>
+      <button class="tab" role="tab" data-pane="doc" aria-selected="false">🧪 Explain my report</button>
+    </div>
+
+    <div class="app-grid">
+      <div class="card">
+        <form class="pane active" id="pane-stuck">
+          <label class="field">What are you putting off?
+            <textarea id="task" placeholder="e.g. seeing a doctor about my ear ache that's been going on for 2 weeks"></textarea>
+          </label>
+          <label class="field">Why are you stuck?
+            <select id="reason"></select>
+          </label>
+          <label class="field">When will you take the first step?
+            <select id="when">
+              <option>I'm not sure, guide me</option>
+              <option>In 1 hour</option>
+              <option>Tonight (7 PM)</option>
+              <option>Tomorrow morning (10 AM)</option>
+              <option>This Saturday (11 AM)</option>
+            </select>
+          </label>
+          <div class="field">Message language
+            <div class="seg" data-name="lang1"></div>
+          </div>
+          <label class="field">Anything else? <span style="font-weight:400;color:var(--muted)">(optional)</span>
+            <input type="text" id="details" placeholder="e.g. I've delayed this for two months">
+          </label>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goStuck">Get my prescription 💊</button>
+          <p class="form-note">Stuck Doctor doesn't diagnose or treat. It helps you get to someone who can.</p>
+        </form>
+
+        <form class="pane" id="pane-doc">
+          <div class="field">Upload a photo of your report or document
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a photo">
+              <div id="dropInner">
+                <div class="big-ico">🧪</div>
+                <strong>Drop a photo here, or tap to choose</strong>
+                <small>Blood test, report, prescription or clinic card · JPG or PNG</small>
+              </div>
+            </div>
+            <input type="file" id="file" accept="image/*" hidden>
+          </div>
+          <div class="field">Message language
+            <div class="seg" data-name="lang2"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goDoc">Explain my report 🔍</button>
+          <p class="form-note">Values are compared with the normal range printed on your report. Only your doctor can say what they mean for you.</p>
+        </form>
+      </div>
+
+      <div id="result"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SAFETY ================= -->
+<section id="safety">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Safety</p>
+      <h2>A nudge, not a doctor.</h2>
+      <p>Stuck Doctor is built to get you <i>to</i> care, never to replace it.</p>
+    </div>
+    <div class="safety">
+      <div class="card yes"><h3>Stuck Doctor will</h3>
+        <ul><li>Help you understand why you're avoiding it</li><li>Give you one tiny, doable first step</li><li>Explain report terms and show which values fall outside the printed range</li><li>Let you practise the booking call</li><li>Flag warning signs that mean "go sooner"</li></ul>
+      </div>
+      <div class="card no"><h3>Stuck Doctor won't</h3>
+        <ul><li>Diagnose what's wrong with you</li><li>Suggest medicines, doses or home remedies</li><li>Read X-ray, MRI or CT images (that needs a trained doctor)</li><li>Book appointments or know a doctor's availability</li><li>Replace a real doctor, ever</li></ul>
+      </div>
+    </div>
+    <div class="emergency">
+      <div><h3>Is it an emergency?</h3><p>Chest pain, trouble breathing, heavy bleeding or fainting: don't wait. Get help now.</p></div>
+      <button class="btn" id="sosInline">🚑 Open SOS</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#top">
+        <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>
+        Stuck Doctor
+      </a>
+      <p>For everyone who's said "I'll go next week" for the fifth week in a row. Built in one day at Hacktoberfest 2026.</p>
+    </div>
+    <div>
+      <h4>Built with</h4>
+      <ul><li><a href="https://ai.google.dev/gemma" target="_blank" rel="noopener">Gemma</a></li><li><a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a></li><li><a href="https://gradio.app" target="_blank" rel="noopener">Gradio</a></li><li>Google Colab</li></ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul><li><a href="https://github.com/KK-Dev0/Stuck_Doctor" target="_blank" rel="noopener">GitHub repo</a></li><li><a href="#safety">Safety</a></li><li><a href="#app">Try it</a></li></ul>
+    </div>
+    <div class="fine">Not medical advice. In an emergency in India, call 108 (ambulance) or 112. Code under the MIT License. Gemma is subject to Google's Gemma terms of use. AI assistance was used in building this project.</div>
+  </div>
+</footer>
+
+<!-- ================= SOS ================= -->
+<button class="sos" id="sosBtn" aria-label="Emergency help">SOS</button>
+<div class="overlay" id="sosModal" role="dialog" aria-modal="true" aria-labelledby="sosTitle">
+  <div class="modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <h3 id="sosTitle">Get help now</h3>
+    <p>If this is an emergency, don't wait. Tap one of these.</p>
+    <div class="sos-grid">
+      <a class="sos-act red" href="tel:108"><span class="em">🚑</span><span>Call an ambulance<small>108 · free in most Indian states</small></span></a>
+      <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112 · police, fire, ambulance</small></span></a>
+      <button class="sos-act green" id="shareLoc"><span class="em">📍</span><span>Share my location on WhatsApp<small>Sends a map link to someone you trust</small></span></button>
+      <a class="sos-act blue" href="https://www.google.com/maps/search/?api=1&query=hospital%20emergency%20near%20me" target="_blank" rel="noopener"><span class="em">🏥</span><span>Find the nearest hospital<small>Opens Google Maps</small></span></a>
+    </div>
+    <p class="sos-msg" id="sosMsg"></p>
+  </div>
+</div>
+
+<!-- ================= DOCTOR NOTE ================= -->
+<div class="overlay" id="noteModal" role="dialog" aria-modal="true">
+  <div class="modal note-modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <p class="eyebrow">🗒️ Show this to your doctor</p>
+    <p class="note-text" id="noteText"></p>
+    <p class="note-sub">Turn your screen around. You don't have to say a word.</p>
+  </div>
+</div>
+
+<!-- ================= REHEARSE ================= -->
+<div class="overlay" id="callModal" role="dialog" aria-modal="true" aria-labelledby="callTitle">
+  <div class="modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <div class="who"><div class="av">👩‍💼</div><div><b id="callTitle">Meera · City Care Clinic</b><small>AI receptionist · practice call</small></div></div>
+    <div class="chat" id="chat"></div>
+    <form class="chat-row" id="chatForm">
+      <input type="text" id="chatIn" placeholder="Type what you'd say…" autocomplete="off" aria-label="Your reply">
+      <button class="btn btn-primary btn-small" type="submit">Send</button>
+    </form>
+    <p class="sos-msg">Practice only. Nothing is booked. When you're ready, make the real call.</p>
+  </div>
+</div>
+
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+/* ---------- data ---------- */
+const REASONS = [
+  ["😰", "Scared of bad news", "What if it's something serious?"],
+  ["📞", "I hate calling to book", "Phone calls feel like a boss fight."],
+  ["🤷", "It's probably nothing", "It'll go away on its own… right?"],
+  ["🧭", "Don't know which doctor to see", "Skin? ENT? General? No idea."],
+  ["⏳", "Worried about cost or time", "Fees, queues, a whole day gone."],
+  ["🙈", "It feels awkward or embarrassing", "How do I even say this out loud?"],
+];
+const LANGS = ["English", "Hinglish", "Bengali"];
+const LOADING = ["Reading your situation…", "Diagnosing the stuck…", "Finding your first move…", "Writing your message…"];
+const DOC_LOADING = ["Reading your report…", "Finding the numbers…", "Checking the ranges…", "Putting it in plain words…"];
+
+const EXAMPLE = {
+  example: true, task: "Ear ache for 2 weeks", date: "Today", urgent: false,
+  diagnosis: "You're stuck in \"it's probably nothing\": hoping it fades so you never have to deal with it.",
+  first_move: "Open Google Maps, find one ENT clinic near you, and save its number in your phone.",
+  guided: true, chosen: "Tonight (7 PM)", why_this_time: "Evenings are quieter, and booking tonight means you could be seen tomorrow.",
+  message: "Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?",
+  questions: ["What could be causing this?", "Do I need any tests?", "What should I avoid until it heals?"],
+  while_you_wait: ["Rest in a quiet place and avoid loud music.", "Keep your head slightly raised while lying down."],
+  see_sooner_if: ["The pain suddenly gets much worse", "You get a high fever", "There's fluid or blood from the ear"],
+  doctor_note: "I've had pain in my ear for about two weeks. I kept hoping it would go away on its own.",
+  buddy_message: "Hey! I finally booked a doctor for my ear. Could you come with me? Chai after, my treat ☕",
+  bring_list: ["A photo ID", "Any old prescriptions or reports", "A list of medicines you take", "Notes on when the pain started"],
+  push: "Two minutes tonight saves you two more weeks of wondering.", doctor_type: "ENT specialist",
+  links: {
+    whatsapp: "https://wa.me/?text=" + encodeURIComponent("Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?"),
+    maps: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("ENT specialist near me"),
+    buddy: "https://wa.me/?text=" + encodeURIComponent("Hey! I finally booked a doctor for my ear. Could you come with me? Chai after, my treat ☕"),
+    calendar: ""
+  }
+};
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const arr = (a) => Array.isArray(a) ? a : [];
+const ul = (a) => `<ul>${arr(a).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+const safeUrl = (u) => typeof u === "string" && /^(https:|tel:)/.test(u) ? u : "";
+const act = (url, cls, label) => safeUrl(url) ? `<a class="act ${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>` : "";
+const store = {
+  get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch {} }
+};
+
+/* ---------- theme ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  $("#themeBtn").textContent = t === "dark" ? "☀️" : "🌙";
+  $("#themeBtn").setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
+}
+applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+$("#themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next); store.set("sd_theme", next);
+});
+
+/* ---------- build UI pieces ---------- */
+$("#reasons").innerHTML = REASONS.map(([ico, title, line], i) =>
+  `<button class="reason" data-i="${i}"><div class="ico">${ico}</div><h3>${esc(title)}</h3><p>${esc(line)}</p><span class="go">This is me →</span></button>`).join("");
+$("#reason").innerHTML = REASONS.map(([, t]) => `<option>${esc(t)}</option>`).join("");
+document.querySelectorAll(".seg").forEach((seg) => {
+  const name = seg.dataset.name;
+  seg.innerHTML = LANGS.map((l, i) => `<label><input type="radio" name="${name}" value="${l}" ${i === 0 ? "checked" : ""}><span>${l}</span></label>`).join("");
+});
+const lang = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+
+document.querySelectorAll(".reason").forEach((b) => b.addEventListener("click", () => {
+  $("#reason").value = REASONS[b.dataset.i][1];
+  showTab("stuck");
+  $("#app").scrollIntoView({ behavior: "smooth" });
+  setTimeout(() => $("#task").focus(), 500);
+}));
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach((t) => { const on = t.dataset.pane === name; t.classList.toggle("active", on); t.setAttribute("aria-selected", on); });
+  document.querySelectorAll(".pane").forEach((p) => p.classList.toggle("active", p.id === "pane-" + name));
+  renderEmpty(name);
+}
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.pane)));
+document.querySelectorAll("[data-tab]").forEach((a) => a.addEventListener("click", () => showTab(a.dataset.tab)));
+
+/* ---------- nav ---------- */
+addEventListener("scroll", () => $("#nav").classList.toggle("scrolled", scrollY > 10));
+$("#connBtn").addEventListener("click", () => {
+  const open = $("#connPanel").classList.toggle("open");
+  $("#connBtn").setAttribute("aria-expanded", open);
+  if (open) $("#connUrl").focus();
+});
+
+/* ---------- modals ---------- */
+function openModal(id) { $(id).classList.add("open"); }
+function closeModals() { document.querySelectorAll(".overlay").forEach((o) => o.classList.remove("open")); }
+document.querySelectorAll(".overlay").forEach((o) => o.addEventListener("click", (e) => { if (e.target === o || e.target.closest("[data-close]")) closeModals(); }));
+addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
+
+/* ---------- SOS ---------- */
+$("#sosBtn").addEventListener("click", () => openModal("#sosModal"));
+$("#sosInline").addEventListener("click", () => openModal("#sosModal"));
+$("#shareLoc").addEventListener("click", () => {
+  const msg = $("#sosMsg");
+  if (!navigator.geolocation) { msg.textContent = "Your browser can't share location. Call 108 or 112 instead."; return; }
+  msg.textContent = "Getting your location…";
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const { latitude: la, longitude: lo } = pos.coords;
+    const text = `I need help. This is my location right now: https://www.google.com/maps?q=${la.toFixed(6)},${lo.toFixed(6)}`;
+    msg.textContent = "Location ready. Pick who to send it to in WhatsApp.";
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+  }, () => { msg.textContent = "Couldn't get your location. Allow location access, or call 108 or 112."; }, { enableHighAccuracy: true, timeout: 10000 });
+});
+
+/* ---------- backend connection ---------- */
+let client = null;
+function setStatus(state, msg = "", ok = false) {
+  $("#connDot").className = "dot " + (state === "on" ? "on" : state === "busy" ? "busy" : "");
+  $("#connLabel").textContent = state === "on" ? "AI connected" : state === "busy" ? "Connecting…" : "Not connected";
+  $("#connMsg").textContent = msg;
+  $("#connMsg").className = "conn-msg " + (msg ? (ok ? "ok" : "err") : "");
+}
+async function connect(url) {
+  url = (url || "").trim().replace(/\/+$/, "");
+  if (!/^https:\/\/.+/.test(url)) { setStatus("off", "Paste the full https://… link from Colab."); return false; }
+  if (/github\.io/.test(url)) { setStatus("off", "That's your website link. Paste the gradio.live link from Colab instead."); return false; }
+  setStatus("busy");
+  try {
+    client = await Client.connect(url);
+    store.set("sd_backend", url);
+    $("#connUrl").value = url;
+    setStatus("on", "Connected! You're ready to go.", true);
+    setTimeout(() => $("#connPanel").classList.remove("open"), 900);
+    return true;
+  } catch (e) {
+    client = null;
+    setStatus("off", "Couldn't connect. Is the Colab notebook still running? Links change every time you re-run it.");
+    return false;
+  }
+}
+$("#connGo").addEventListener("click", () => connect($("#connUrl").value));
+$("#connUrl").addEventListener("keydown", (e) => { if (e.key === "Enter") connect($("#connUrl").value); });
+const startUrl = new URLSearchParams(location.search).get("backend") || store.get("sd_backend");
+if (startUrl) { $("#connUrl").value = startUrl; connect(startUrl); }
+
+function needClient() {
+  if (client) return true;
+  $("#connPanel").classList.add("open");
+  setStatus("off", "Connect the AI first: paste your gradio.live link.");
+  scrollTo({ top: 0, behavior: "smooth" });
+  return false;
+}
+
+/* ---------- result rendering ---------- */
+function renderEmpty(tab = "stuck") {
+  $("#result").innerHTML = tab === "doc"
+    ? `<div class="empty"><div class="rx">🧪</div><h3>Your report, in plain words</h3><p>Upload a photo of a blood test or report. Every value gets checked against the range printed on it, and every term gets explained.</p></div>`
+    : `<div class="empty"><div class="rx">℞</div><h3>Your prescription will appear here</h3><p>Fill in the form and tap <b>Get my prescription</b>.</p><button class="btn btn-ghost btn-small" id="exampleBtn">See an example</button></div>`;
+  const ex = $("#exampleBtn");
+  if (ex) ex.addEventListener("click", () => renderRx(EXAMPLE));
+}
+let loadTimer;
+function renderLoading(lines = LOADING) {
+  let i = 0;
+  $("#result").innerHTML = `<div class="card loading"><div class="spinner"></div><p id="loadMsg">${lines[0]}</p></div>`;
+  clearInterval(loadTimer);
+  loadTimer = setInterval(() => { const el = $("#loadMsg"); if (!el) return clearInterval(loadTimer); el.textContent = lines[++i % lines.length]; }, 1800);
+}
+function renderError(msg) {
+  clearInterval(loadTimer);
+  $("#result").innerHTML = `<div class="error-box"><h3>Hmm, that didn't work 😵</h3><p>${esc(msg)}</p></div>`;
+}
+
+let lastRx = null;
+function renderRx(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  lastRx = d;
+  const L = d.links || {};
+  $("#result").innerHTML = `
+  <article class="slip">
+    ${d.example ? `<span class="example-tag">Example prescription</span>` : ""}
+    <div class="slip-head"><div class="rx">℞</div>
+      <div class="slip-meta"><span>Patient</span><b>${esc(d.task)}</b><span>${esc(d.date)}</span></div></div>
+    ${d.urgent ? `<div class="urgent"><span>⚠️ This sounds like it needs attention soon. Please get medical help today.</span><a href="#" id="urgentSos">Open SOS</a></div>` : ""}
+    <p class="eyebrow">Diagnosis</p><p class="diag">${esc(d.diagnosis)}</p>
+    <div class="move"><p class="eyebrow">Your 2-minute first move</p><p>${esc(d.first_move)}</p></div>
+    ${d.guided ? `<div class="pill-time">🕒 Best time: <b>${esc(d.chosen)}</b> · ${esc(d.why_this_time)}</div>` : ""}
+    <p class="eyebrow">Message to send</p><div class="bubble">${esc(d.message)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.maps, "maps", "📍 Find a " + (d.doctor_type || "doctor"))}
+      ${act(L.calendar, "cal", "📅 Remind me · " + (d.chosen || ""))}
+    </div>
+    <p class="eyebrow extras-title">Extra help</p>
+    <div class="actions" style="margin-top:0">
+      <button class="act alt1" id="rehearseBtn">🎭 Rehearse the call</button>
+      ${d.doctor_note ? `<button class="act alt3" id="noteBtn">🗒️ Show-the-doctor card</button>` : ""}
+      ${act(L.buddy, "alt2", "🤝 Ask a friend to come")}
+    </div>
+    <div class="two">
+      <div><p class="eyebrow">Ask the doctor</p>${ul(d.questions)}</div>
+      <div><p class="eyebrow">Pack for the visit 🎒</p>${ul(d.bring_list)}</div>
+    </div>
+    <p class="eyebrow">While you wait</p>${ul(d.while_you_wait)}
+    <div class="warn"><p class="eyebrow">See a doctor sooner if</p>${ul(d.see_sooner_if)}</div>
+    <p class="push">“${esc(d.push)}”</p>
+    <p class="sign">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+  const us = $("#urgentSos"); if (us) us.addEventListener("click", (e) => { e.preventDefault(); openModal("#sosModal"); });
+  const nb = $("#noteBtn"); if (nb) nb.addEventListener("click", () => { $("#noteText").textContent = d.doctor_note; openModal("#noteModal"); });
+  $("#rehearseBtn").addEventListener("click", () => startRehearsal(d));
+}
+
+function renderDoc(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  if (d.doc_type === "unreadable") return renderError(d.summary || "I couldn't read that photo. Try a clearer, well-lit picture.");
+  const L = d.links || {};
+  const terms = arr(d.explained).filter((t) => t && t.term);
+  const values = d.is_scan ? [] : arr(d.values).filter((v) => v && v.test);
+  const count = (s) => values.filter((v) => v.status === s).length;
+  const outside = count("low") + count("high");
+  const label = { low: "Low", high: "High", normal: "Normal", unknown: "No range" };
+  const fact = (k, v) => v ? `<div class="fact"><small>${k}</small><b>${esc(v)}</b></div>` : "";
+  const facts = fact("Clinic", d.clinic_name) + fact("Doctor", d.doctor_name) + fact("Phone", d.phone) + fact("Follow-up", d.follow_up);
+
+  const table = values.length ? `
+    <p class="eyebrow">Your values</p>
+    <div class="lab-summary">
+      <span class="chip normal">${count("normal")} normal</span>
+      ${count("low") ? `<span class="chip low">${count("low")} low</span>` : ""}
+      ${count("high") ? `<span class="chip high">${count("high")} high</span>` : ""}
+      ${count("unknown") ? `<span class="chip unknown">${count("unknown")} no range printed</span>` : ""}
+    </div>
+    <div class="table-wrap"><table class="lab">
+      <thead><tr><th>Test</th><th>Your value</th><th>Normal range</th><th></th></tr></thead>
+      <tbody>${values.map((v) => `<tr class="${v.status === "low" || v.status === "high" ? "flag" : ""}">
+        <td>${esc(v.test)}</td><td class="val">${esc(v.value)} ${esc(v.unit || "")}</td>
+        <td class="rng">${esc(v.range || "—")}</td><td><span class="chip ${esc(v.status)}">${label[v.status] || "No range"}</span></td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="lab-note">${outside
+      ? `<b>${outside} value${outside > 1 ? "s are" : " is"} outside the range printed on your report.</b> That's common and doesn't always mean something is wrong, but it is worth showing your doctor soon. Only they can say what it means for you.`
+      : `All the values with a printed range fall inside it. Still share the report with your doctor, since they look at the whole picture.`}</p>` : "";
+
+  $("#result").innerHTML = `
+  <article class="slip">
+    <div class="slip-head"><div class="rx">🧪</div>
+      <div class="slip-meta"><span>Document</span><b>${esc(d.doc_type)}</b></div></div>
+    ${d.is_scan ? `<div class="pill-time" style="margin-top:0">🩻 This looks like a scan image (like an X-ray or MRI). Reading scans needs a trained doctor, and an AI guess could be dangerously wrong, so Stuck Doctor won't try. Please show it to a doctor. If you have the written report that came with it, upload that and I'll explain it.</div>` : ""}
+    <p class="eyebrow">What it says</p><p class="diag" style="font-size:19px">${esc(d.summary)}</p>
+    ${table}
+    ${terms.length ? `<p class="eyebrow">In plain words</p><div class="terms">${terms.map((t) => `<div class="term"><b>${esc(t.term)}</b><span>${esc(t.meaning)}</span></div>`).join("")}</div>` : ""}
+    ${facts ? `<p class="eyebrow">Details found</p><div class="facts">${facts}</div>` : ""}
+    <p class="eyebrow">Ask the doctor</p>${ul(d.questions)}
+    <p class="eyebrow">Message to send</p><div class="bubble">${esc(d.message)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.call, "call", "📞 Call clinic")}
+      ${act(L.maps, "maps", "📍 Find clinic")}
+    </div>
+    <p class="sign" style="margin-top:22px">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+}
+
+/* ---------- rehearse the call ---------- */
+let history = [], rehearsalCtx = null;
+function addMsg(text, who) {
+  const el = document.createElement("div");
+  el.className = "msg " + who; el.textContent = text;
+  $("#chat").appendChild(el); $("#chat").scrollTop = $("#chat").scrollHeight;
+  return el;
+}
+async function askMeera() {
+  const typing = addMsg("Meera is typing…", "them typing");
+  try {
+    const res = await client.predict("/rehearse", [JSON.stringify(history), rehearsalCtx.task, rehearsalCtx.lang]);
+    typing.remove();
+    const reply = (res.data[0] && res.data[0].reply) || "Sorry, the line is unclear. Could you repeat that?";
+    history.push({ role: "assistant", content: reply });
+    addMsg(reply, "them");
+  } catch {
+    typing.remove();
+    addMsg("📵 The practice line dropped. Check the AI is connected and try again.", "them");
+  }
+}
+function startRehearsal(d) {
+  if (!needClient()) return;
+  rehearsalCtx = { task: d.task, lang: lang("lang1") };
+  history = []; $("#chat").innerHTML = "";
+  openModal("#callModal");
+  askMeera();
+  setTimeout(() => $("#chatIn").focus(), 300);
+}
+$("#chatForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("#chatIn").value.trim();
+  if (!text || !client) return;
+  $("#chatIn").value = "";
+  history.push({ role: "user", content: text });
+  addMsg(text, "me");
+  askMeera();
+});
+
+/* ---------- submit: stuck ---------- */
+$("#pane-stuck").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const task = $("#task").value.trim();
+  if (!task) { $("#task").focus(); return; }
+  if (!needClient()) return;
+  const btn = $("#goStuck"); btn.disabled = true;
+  renderLoading();
+  try {
+    const res = await client.predict("/prescribe", [task, $("#reason").value, $("#when").value, lang("lang1"), $("#details").value]);
+    renderRx(res.data[0]);
+  } catch (err) {
+    renderError("The AI didn't answer. Check the Colab notebook is still running, then try again.");
+  } finally { btn.disabled = false; }
+});
+
+/* ---------- upload ---------- */
+let chosenFile = null;
+const drop = $("#drop"), fileInput = $("#file");
+function setFile(f) {
+  if (!f) return;
+  if (!f.type.startsWith("image/")) { renderError("Please upload a photo (JPG or PNG). For a PDF, take a screenshot of the page."); return; }
+  if (f.size > 8 * 1024 * 1024) { renderError("That photo is over 8 MB. Try a smaller one."); return; }
+  chosenFile = f;
+  const url = URL.createObjectURL(f);
+  $("#dropInner").innerHTML = `<img src="${url}" alt="Document preview"><span class="drop-name">${esc(f.name)} · tap to change</span>`;
+}
+drop.addEventListener("click", () => fileInput.click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
+
+$("#pane-doc").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  if (!chosenFile) { drop.focus(); drop.classList.add("over"); setTimeout(() => drop.classList.remove("over"), 600); return; }
+  if (!needClient()) return;
+  const btn = $("#goDoc"); btn.disabled = true;
+  renderLoading(DOC_LOADING);
+  try {
+    const res = await client.predict("/read_document", [handle_file(chosenFile), lang("lang2")]);
+    renderDoc(res.data[0]);
+  } catch (err) {
+    renderError("The AI couldn't read the document. Check the Colab notebook is still running, then try again.");
+  } finally { btn.disabled = false; }
+});
+
+renderEmpty("stuck");
+</script>
+</body>
+</html>
