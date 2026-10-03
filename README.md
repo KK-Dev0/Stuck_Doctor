@@ -1,58 +1,119 @@
-# Stuck_Doctor
-Helps people who keep putting off the doctor actually book. Built with Gemma + Ollama + Gradio.
-**For people who keep putting off the doctor.**
+<div align="center">
 
-Most apps tell you *what* to do. Stuck Doctor asks *why you're stuck* first (scared of bad news, hate calling, "it's probably nothing", don't know which doctor, worried about cost, feeling awkward) and gives you one tiny step that fits that reason. Then it helps you actually take it.
+# 🩺 Stuck Doctor
 
-> Not medical advice. Stuck Doctor doesn't diagnose or treat anything. It only helps you get to someone who can.
+### The hardest part of seeing a doctor is *starting*. Stuck Doctor helps you start.
 
-Built at **Hacktoberfest 2026**.
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Open%20App-0f6b63?style=for-the-badge)](https://kk-dev0.github.io/Stuck_Doctor/)
+[![Gemma 4](https://img.shields.io/badge/AI-Gemma%204-e0643a?style=for-the-badge)](https://ai.google.dev/gemma)
+[![Hacktoberfest 2026](https://img.shields.io/badge/Hacktoberfest-2026-1c2a28?style=for-the-badge)](https://hacktoberfest.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/KK-Dev0/Stuck_Doctor/blob/main/Stuck_Doctor.ipynb)
+**[👉 Try it live](https://kk-dev0.github.io/Stuck_Doctor/)**
 
-## ✨ What it does
+*Built in one day at Hacktoberfest × HackTropica, Asansol · 3 October 2026*
 
-- **Diagnoses your "stuck"**: names the kind of avoidance you're in, kindly
-- **2-minute first move**: one small action you can do right now
-- **Picks a time for you**: choose "I'm not sure, guide me" and it suggests the best time
-- **Ready-to-send message**: in English, Hinglish or Bengali
-- **Questions to ask the doctor**, plus gentle "while you wait" tips and warning signs to watch for
-- **Real action buttons**:
-  - 💬 Opens WhatsApp with the booking message already typed
-  - 📍 Opens Google Maps to find the right kind of doctor near you
-  - 📅 Adds a "remind me to book" event to Google Calendar
+</div>
+
+---
+
+## 💡 The problem
+
+Millions of people put off going to the doctor, not because they don't care, but because they're **stuck**:
+scared of bad news, hate phone calls, worried about cost, unsure which doctor to see, or too embarrassed to say it out loud.
+
+Most health apps tell you *what* to do. **Stuck Doctor asks *why* you're stuck**, then gives you one tiny step that fits, and helps you actually take it.
+
+> ⚠️ **Not medical advice.** Stuck Doctor never diagnoses, suggests medicines, or reads scans. It only helps people get to a real doctor.
+
+---
+
+## ✨ Features
+
+| | Feature | What it does |
+|---|---|---|
+| 🩺 | **Stuck diagnosis** | Names *why* you're avoiding the doctor and gives one 2-minute first move |
+| 💬 | **One-tap actions** | Ready-to-send WhatsApp booking message, the right doctor on Google Maps, and a calendar reminder |
+| 🎭 | **Rehearse the call** | Practise booking with *Meera*, an AI clinic receptionist, until the real call feels easy |
+| 👨‍👩‍👧 | **Help someone you love** | Gentle messages to convince a parent or grandparent to go, plus an offer to go with them |
+| 🧪 | **Report decoder** | Every blood-test value checked against the printed range, marked **Low / Normal / High**, and double-checked against your photo |
+| 💊 | **My medicines** | Snap a prescription or add medicines and supplements by hand, then add every reminder to your phone in one tap |
+| 📝 | **After-the-visit notes** | Say what the doctor told you, and get a summary, to-do list, follow-up reminder and family update |
+| 🗒️ | **Show-the-doctor card** | Too shy to say it? A full-screen note in your own words |
+| 💰 | **Free-care finder** | Points to government hospitals, eSanjeevani (free online doctor), Jan Aushadhi and Ayushman Bharat |
+| 🚑 | **SOS button** | Always one tap away: 108 ambulance, 112 emergency, 104 helpline, share live location, nearest hospital |
+
+### ♿ Built for everyone
+- 🗣️ **English, Hindi, Hinglish, Bengali**, or **Auto** (replies in the language you write in)
+- 🎙️ **Voice input** and 🔊 **read-aloud** for people who can't read well
+- 🔠 **Bigger text** button, plus short, simple sentences
+- 🌙 **Light and dark themes**, and works on any phone
+
+---
 
 ## 🧠 How it works
 
-1. You fill in what you're avoiding and why.
-2. **Gemma** (an open-weight model by Google), running on **Ollama**, replies in structured JSON.
-3. Python turns that JSON into the answer and the WhatsApp, Maps and Calendar links.
-4. **Gradio** shows it all as a web app.
+Website ──► Render back end (Gradio API) ──► Gemma 4 (Gemini API)
+▲ │
+└──── prescription, ◄────┘ Python checks numbers, builds WhatsApp,
+buttons, reminders Maps & Calendar links
 
-The AI isn't trained or changed. It's guided by a prompt, and the app turns its answer into actions.
+
+1. **Front end:** a custom HTML/CSS/JS website on **GitHub Pages**
+2. **Back end:** a **Gradio** API on **Render**, with four endpoints: `prescribe`, `read_document`, `visit_summary`, `rehearse`
+3. **AI:** **Gemma 4** (open-weight) replies in structured JSON, with per-task temperature and automatic retry if an answer is incomplete
+4. **Code, not guesses:** lab values are compared to reference ranges **by Python**, not by the AI. Reports get a second "double-check" pass.
+
+---
+
+## 🛠️ Tech stack
+
+`Gemma 4` · `Gemini API` · `Ollama` (prototyping) · `Gradio` · `Python` · `HTML / CSS / JavaScript` · `Web Speech API` · `GitHub Pages` · `Render` · `Google Colab`
+
+---
 
 ## 🚀 Run it yourself
 
-1. Click **Open in Colab** above.
-2. Go to **Runtime → Change runtime type → T4 GPU**.
-3. Click **Runtime → Run all**.
-4. Open the `gradio.live` link that appears at the bottom.
+**Website:** open `index.html`, or visit the [live demo](https://kk-dev0.github.io/Stuck_Doctor/).
 
-The link only works while the Colab notebook is running.
+**Back end:**
+```bash
+cd backend
+pip install -r requirements.txt
+export GEMINI_API_KEY=your_key_here   # free key from aistudio.google.com
+python app.py
+```
+Then set `DEFAULT_BACKEND` in `index.html` to your back-end URL.
 
-## 🛠️ Built with
+---
 
-- [Gemma](https://ai.google.dev/gemma), the open-weight model
-- [Ollama](https://ollama.com) and [ollama-python](https://github.com/ollama/ollama-python), to run the model
-- [Gradio](https://gradio.app), for the web interface
-- Google Colab
-- AI assistance (Claude) was used to help write the code
+## 🛡️ Safety
 
-## ⚠️ Limits
+| ✅ Stuck Doctor **will** | ❌ Stuck Doctor **won't** |
+|---|---|
+| Help you understand why you're avoiding care | Diagnose what's wrong with you |
+| Give one tiny, doable first step | Suggest medicines, doses or home remedies |
+| Explain report terms and flag out-of-range values | Read X-ray, MRI or CT images |
+| Turn your doctor's instructions into reminders | Book appointments for you |
+| Flag warning signs that mean "go sooner" | Replace a real doctor or pharmacist |
 
-- It doesn't know real doctors or their availability. The Maps button finds real clinics; the clinic confirms timings.
-- It doesn't book appointments. It gets *you* to book, which is the part people get stuck on.
+---
 
-## 📄 License
+## 🗺️ What's next
+- Offline mode for low-connectivity areas
+- More Indian languages (Tamil, Telugu, Marathi)
+- Nearby clinic timings and fees
+- Shared family accounts for caregivers
 
-Code is under the MIT License. Gemma is subject to Google's Gemma terms of use.
+---
+
+## 📄 License & credits
+
+Code under the **MIT License**. Gemma is subject to Google's Gemma terms of use.
+AI assistance (Claude) was used in building this project.
+
+<div align="center">
+
+**Made with 🩺 at Hacktoberfest 2026**
+
+</div>
