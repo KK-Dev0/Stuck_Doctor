@@ -1,0 +1,1276 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stuck Doctor · Get unstuck, get seen</title>
+<meta name="description" content="Stuck Doctor helps anyone who keeps putting off the doctor take the first tiny step. Voice, Hindi and Bengali, free-care options, report decoder and SOS. Built with Gemma at Hacktoberfest 2026.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
+<script>
+  (function () {
+    var t = null, big = null;
+    try { t = localStorage.getItem("sd_theme"); big = localStorage.getItem("sd_big"); } catch (e) {}
+    if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", t);
+    if (big === "1") document.documentElement.classList.add("big");
+  })();
+</script>
+<style>
+  :root, [data-theme="light"] {
+    color-scheme: light;
+    --bg: #f6f1e7; --surface: #fffdf8; --surface-2: #f3ecdf; --field: #ffffff;
+    --text: #1c2a28; --text-soft: #3f4d4a; --muted: #6f756f; --line: #e6dcc9; --dash: #d4c5aa;
+    --brand: #0f6b63; --brand-deep: #0a4a44; --on-brand: #ffffff; --on-brand-soft: #bfe7df;
+    --accent: #0f6b63; --heading-accent: #0a4a44;
+    --clay: #e0643a; --clay-dark: #c24f28;
+    --bubble: #dcf8c6; --bubble-text: #1c2a28;
+    --warn-bg: #fdf0ee; --warn-line: #dc4a3a; --warn-text: #b4321f;
+    --pill-bg: #fff4ec; --pill-line: #fbd3bc; --pill-text: #9a3d1a;
+    --mint: #dff1ec; --tabs: #ebe3d4; --nav: rgba(246, 241, 231, .9);
+    --shadow: 0 18px 40px rgba(10, 74, 68, .10);
+    --ok: #15803d; --ok-bg: #e5f5ea; --hi: #b4321f; --hi-bg: #fde4e0; --lo: #9a5b00; --lo-bg: #fdf0d5; --na: #6f756f; --na-bg: #eee8dc;
+    --footer: #1c2a28;
+  }
+  [data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #0e1514; --surface: #162120; --surface-2: #1d2a28; --field: #111a19;
+    --text: #e7efed; --text-soft: #b8c6c2; --muted: #8b9a96; --line: #2a3a37; --dash: #3a4d49;
+    --brand: #13857a; --brand-deep: #0d5f57; --on-brand: #ffffff; --on-brand-soft: #c3eee6;
+    --accent: #5fd0c0; --heading-accent: #9be6da;
+    --clay: #ee7448; --clay-dark: #d85f33;
+    --bubble: #1f4630; --bubble-text: #e3f6e8;
+    --warn-bg: #2b1a18; --warn-line: #f0705f; --warn-text: #ff9c8d;
+    --pill-bg: #2c1f15; --pill-line: #5a3a22; --pill-text: #ffc199;
+    --mint: #17332f; --tabs: #1d2a28; --nav: rgba(14, 21, 20, .88);
+    --shadow: 0 18px 40px rgba(0, 0, 0, .35);
+    --ok: #6ee7a0; --ok-bg: #173325; --hi: #ff9c8d; --hi-bg: #3a1c18; --lo: #ffd27a; --lo-bg: #33280f; --na: #8b9a96; --na-bg: #222e2c;
+    --footer: #090f0e;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html.big { zoom: 1.15; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: 'Inter', 'Noto Sans Devanagari', 'Noto Sans Bengali', system-ui, sans-serif; font-size: 16px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
+  h1, h2, h3 { font-family: 'Fraunces', 'Noto Sans Devanagari', 'Noto Sans Bengali', Georgia, serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 0; }
+  .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
+  .muted { color: var(--muted); }
+
+  /* nav */
+  .nav { position: sticky; top: 0; z-index: 50; background: var(--nav); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
+  .nav.scrolled { border-color: var(--line); }
+  .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 72px; gap: 16px; }
+  .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; }
+  .logo-mark { width: 38px; height: 38px; border-radius: 12px; background: var(--brand); display: grid; place-items: center; }
+  .nav-links { display: flex; gap: 24px; }
+  .nav-links a { text-decoration: none; color: var(--text-soft); font-weight: 500; font-size: 15px; }
+  .nav-links a:hover { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+  .pill-btn { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; font: 500 14px 'Inter', sans-serif; color: var(--text); cursor: pointer; }
+  .icon-btn { width: 40px; height: 40px; padding: 0; justify-content: center; font-size: 17px; font-weight: 700; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #c9b9a0; }
+  .dot.on { background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, .15); }
+  .dot.busy { background: #f59e0b; animation: pulse 1s infinite; }
+  @keyframes pulse { 50% { opacity: .4; } }
+  .conn-panel { position: absolute; right: 24px; top: 78px; width: min(420px, calc(100vw - 32px)); background: var(--surface); border: 1px solid var(--line); border-radius: 18px; box-shadow: var(--shadow); padding: 20px; display: none; }
+  .conn-panel.open { display: block; }
+  .conn-panel h3 { font-size: 20px; margin-bottom: 6px; }
+  .conn-panel p { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .conn-row { display: flex; gap: 8px; }
+  .conn-row input { flex: 1; margin-top: 0; }
+  .conn-msg { font-size: 13px; margin-top: 10px; min-height: 18px; }
+  .conn-msg.ok { color: var(--ok); } .conn-msg.err { color: var(--hi); }
+
+  /* buttons & fields */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: none; border-radius: 14px; padding: 14px 22px; font: 600 16px 'Inter', sans-serif; cursor: pointer; text-decoration: none; transition: transform .15s, box-shadow .15s, background .15s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn-primary { background: var(--clay); color: #fff; box-shadow: 0 10px 24px rgba(224, 100, 58, .28); }
+  .btn-primary:hover { background: var(--clay-dark); }
+  .btn-ghost { background: transparent; color: var(--text); border: 1.5px solid var(--text); }
+  .btn-small { padding: 10px 16px; font-size: 14px; border-radius: 12px; }
+  .btn[disabled] { opacity: .6; cursor: wait; transform: none; }
+  label.field, div.field { display: block; font-weight: 600; font-size: 14px; color: var(--heading-accent); margin: 0 0 18px; }
+  input[type=text], input[type=url], input[type=number], input[type=time], textarea, select {
+    width: 100%; margin-top: 8px; padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line);
+    background: var(--field); color: var(--text); font: 400 15px 'Inter', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif; outline: none; transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { resize: vertical; min-height: 92px; padding-right: 56px; }
+  input::placeholder, textarea::placeholder { color: var(--muted); }
+  input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 4px rgba(15, 107, 99, .16); }
+  .seg { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span { display: inline-block; padding: 9px 14px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--field); font-weight: 500; color: var(--text-soft); cursor: pointer; transition: all .15s; font-size: 14px; }
+  .seg input:checked + span { background: var(--brand); border-color: var(--brand); color: var(--on-brand); }
+  .seg input:focus-visible + span { box-shadow: 0 0 0 4px rgba(15, 107, 99, .2); }
+  .with-mic { position: relative; }
+  .mic { position: absolute; right: 10px; bottom: 10px; width: 42px; height: 42px; border-radius: 50%; border: none; background: var(--brand); color: #fff; font-size: 18px; cursor: pointer; display: grid; place-items: center; }
+  .mic.rec { background: #dc2626; animation: pulse 1s infinite; }
+  .mic-hint { font-weight: 400; font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; color: var(--text-soft); font-size: 14px; margin: 0 0 18px; cursor: pointer; }
+  .check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--brand); }
+
+  /* hero */
+  .hero { padding: 72px 0 88px; }
+  .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
+  .hero h1 { font-size: clamp(40px, 5.6vw, 68px); }
+  .hero h1 em { font-style: italic; color: var(--accent); }
+  .hero .lede { font-size: 19px; color: var(--text-soft); max-width: 560px; margin: 22px 0 32px; }
+  .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
+  .trust { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 14px; }
+  .trust span::before { content: '✓'; color: var(--accent); font-weight: 700; margin-right: 6px; }
+  .badge { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; font-size: 13px; font-weight: 500; color: var(--text-soft); margin-bottom: 22px; }
+  .badge b { color: var(--clay); }
+  .hero-art { position: relative; height: 470px; }
+  .mock { position: absolute; inset: 20px 30px 20px 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 26px; box-shadow: var(--shadow); padding: 28px; transform: rotate(2.5deg); }
+  .mock-head { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px dashed var(--line); padding-bottom: 14px; }
+  .mock-head div:last-child { text-align: right; font-size: 13px; color: var(--muted); }
+  .mock-head b { color: var(--text); font-size: 15px; }
+  .mock-diag { font-family: 'Fraunces', serif; font-size: 21px; color: var(--heading-accent); margin: 0; line-height: 1.3; }
+  .mock-line { height: 10px; border-radius: 6px; background: var(--surface-2); margin: 12px 0; }
+  .mock-move { background: var(--brand); border-radius: 16px; padding: 16px; margin: 20px 0; color: var(--on-brand); font-weight: 500; }
+  .mock-move small { display: block; text-transform: uppercase; letter-spacing: .12em; font-size: 11px; color: var(--on-brand-soft); margin-bottom: 4px; }
+  .mock-bubble { background: var(--bubble); color: var(--bubble-text); border-radius: 14px 14px 14px 4px; padding: 12px 14px; font-size: 14px; max-width: 85%; }
+  .float { position: absolute; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 10px 14px; box-shadow: var(--shadow); font-size: 14px; font-weight: 600; animation: bob 4s ease-in-out infinite; }
+  .float.f1 { left: 0; top: 70px; } .float.f2 { right: 0; bottom: 70px; animation-delay: -2s; } .float.f3 { right: 10px; top: 4px; animation-delay: -1s; } .float.f4 { left: 10px; bottom: 10px; animation-delay: -3s; }
+  @keyframes bob { 50% { transform: translateY(-8px); } }
+
+  /* sections */
+  section { padding: 88px 0; }
+  .sec-head { max-width: 680px; margin-bottom: 44px; }
+  .sec-head h2 { font-size: clamp(32px, 4vw, 46px); }
+  .sec-head p { color: var(--text-soft); font-size: 17px; margin: 14px 0 0; }
+  .alt { background: var(--surface); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .reasons, .features, .free-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  .free-grid { grid-template-columns: repeat(4, 1fr); }
+  .reason, .feature, .free { text-align: left; background: var(--bg); border: 1.5px solid var(--line); border-radius: 22px; padding: 24px; font: inherit; color: inherit; transition: transform .18s, border-color .18s, box-shadow .18s; text-decoration: none; display: block; }
+  .alt .reason, .alt .feature, .alt .free { background: var(--bg); }
+  .reason { cursor: pointer; }
+  .reason:hover, .feature:hover, .free:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: var(--shadow); }
+  .ico { font-size: 28px; }
+  .reason h3, .feature h3, .free h3 { font-size: 21px; margin: 12px 0 6px; }
+  .reason p, .feature p, .free p { margin: 0; color: var(--muted); }
+  .go { display: inline-block; margin-top: 14px; color: var(--accent); font-weight: 600; font-size: 14px; }
+  .feature .tag { display: inline-block; margin-top: 12px; font-size: 12px; font-weight: 600; color: var(--clay); text-transform: uppercase; letter-spacing: .08em; }
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; counter-reset: step; }
+  .step { position: relative; padding-top: 64px; }
+  .step::before { counter-increment: step; content: counter(step); position: absolute; top: 0; left: 0; width: 46px; height: 46px; border-radius: 50%; background: var(--brand); color: var(--on-brand); display: grid; place-items: center; font: 600 20px 'Fraunces', serif; }
+  .step h3 { font-size: 23px; margin-bottom: 8px; }
+  .step p { margin: 0; color: var(--text-soft); }
+
+  /* app */
+  .tabs { display: inline-flex; background: var(--tabs); border-radius: 999px; padding: 5px; margin-bottom: 26px; flex-wrap: wrap; gap: 2px; }
+  .tab { border: none; background: transparent; padding: 11px 20px; border-radius: 999px; font: 600 15px 'Inter', sans-serif; color: var(--text-soft); cursor: pointer; }
+  .tab.active { background: var(--surface); color: var(--heading-accent); box-shadow: 0 2px 8px rgba(0, 0, 0, .08); }
+  .app-grid { display: grid; grid-template-columns: 5fr 7fr; gap: 28px; align-items: start; }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 28px; box-shadow: var(--shadow); }
+  .alt .card { background: var(--bg); }
+  .pane { display: none; } .pane.active { display: block; }
+  .form-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
+  .drop { border: 2px dashed var(--dash); border-radius: 18px; padding: 34px 20px; text-align: center; cursor: pointer; background: var(--field); transition: border-color .15s, background .15s; margin-top: 8px; font-weight: 400; color: var(--text); }
+  .drop.over { border-color: var(--accent); background: var(--mint); }
+  .drop .big-ico { font-size: 36px; }
+  .drop strong { display: block; font-size: 16px; margin: 6px 0 2px; }
+  .drop small { color: var(--muted); }
+  .drop img { max-width: 100%; max-height: 220px; border-radius: 12px; display: block; margin: 0 auto 10px; }
+  .drop-name { font-size: 13px; color: var(--text-soft); }
+
+  #result { min-height: 520px; }
+  .empty { border: 2px dashed var(--dash); border-radius: 22px; padding: 70px 30px; text-align: center; }
+  .empty .rx { font-size: 64px; }
+  .empty h3 { font-size: 26px; margin: 10px 0 8px; color: var(--heading-accent); }
+  .empty p { color: var(--muted); margin: 0 0 22px; }
+  .loading { text-align: center; padding: 110px 30px; }
+  .spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--mint); border-top-color: var(--accent); animation: spin .9s linear infinite; margin: 0 auto 22px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading p { font-family: 'Fraunces', serif; font-size: 22px; color: var(--heading-accent); margin: 0; }
+  .loading small { display: block; color: var(--muted); margin-top: 10px; }
+
+  .slip { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 30px 32px; box-shadow: var(--shadow); animation: rise .45s ease; }
+  .alt .slip { background: var(--bg); }
+  @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  .rx { font-family: 'Fraunces', serif; color: var(--accent); line-height: 1; font-size: 54px; }
+  .slip-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; border-bottom: 2px dashed var(--line); padding-bottom: 16px; margin-bottom: 6px; }
+  .slip-meta { text-align: right; font-size: 14px; color: var(--muted); display: flex; flex-direction: column; }
+  .slip-meta b { color: var(--text); font-size: 16px; }
+  .speak-row { display: flex; justify-content: flex-end; margin: 10px 0 0; }
+  .speak { border: 1px solid var(--line); background: var(--surface-2); color: var(--text); border-radius: 999px; padding: 8px 14px; font: 600 14px 'Inter', sans-serif; cursor: pointer; }
+  .slip .eyebrow { margin: 22px 0 8px; }
+  .diag { font-family: 'Fraunces', 'Noto Sans Devanagari', 'Noto Sans Bengali', serif; font-size: 23px; color: var(--heading-accent); margin: 0; line-height: 1.35; }
+  .move { background: var(--brand); color: var(--on-brand); border-radius: 18px; padding: 18px 20px; margin: 20px 0 6px; }
+  .move .eyebrow { color: var(--on-brand-soft); margin: 0 0 6px; }
+  .move p:last-child { margin: 0; font-size: 18px; font-weight: 500; }
+  .pill-time { background: var(--pill-bg); border: 1px solid var(--pill-line); color: var(--pill-text); border-radius: 12px; padding: 11px 14px; margin-top: 12px; font-size: 14px; }
+  .bubble { background: var(--bubble); color: var(--bubble-text); border-radius: 16px 16px 16px 4px; padding: 13px 16px; display: inline-block; max-width: 100%; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .slip ul { margin: 0; padding-left: 20px; color: var(--text-soft); }
+  .slip li { margin: 5px 0; }
+  .warn { background: var(--warn-bg); border-left: 4px solid var(--warn-line); border-radius: 12px; padding: 2px 16px 14px; margin-top: 20px; }
+  .warn .eyebrow { color: var(--warn-text); }
+  .money { background: var(--ok-bg); border-left: 4px solid var(--ok); border-radius: 12px; padding: 2px 16px 14px; margin-top: 20px; }
+  .money .eyebrow { color: var(--ok); }
+  .money .links { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .money .links a { font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); text-decoration: none; }
+  .urgent { background: #dc4a3a; color: #fff; border-radius: 14px; padding: 14px 16px; font-weight: 600; margin: 14px 0 6px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .urgent a { background: #fff; color: #b4321f; border-radius: 10px; padding: 8px 12px; text-decoration: none; font-weight: 700; }
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .fact, .term { background: var(--surface-2); border-radius: 12px; padding: 10px 14px; }
+  .fact small { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; }
+  .terms { display: grid; gap: 10px; }
+  .term b { display: block; color: var(--heading-accent); }
+  .term span { color: var(--text-soft); font-size: 15px; }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+  .act { flex: 1 1 180px; text-align: center; padding: 14px 16px; border-radius: 14px; color: #fff; text-decoration: none; font-weight: 600; transition: transform .15s; border: none; font-family: inherit; font-size: 15px; cursor: pointer; }
+  .act:hover { transform: translateY(-2px); }
+  .act.wa { background: #1fae55; } .act.maps { background: #2f62d6; } .act.cal { background: #d9473a; } .act.call { background: var(--brand-deep); }
+  .act.alt1 { background: #7c4dbd; } .act.alt2 { background: #b8610f; } .act.alt3 { background: #0f7d8c; }
+  .push { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--heading-accent); text-align: center; margin: 26px 0 4px; }
+  .sign { text-align: right; color: var(--accent); font-weight: 600; margin: 0; }
+  .sign span { color: var(--muted); font-weight: 400; font-size: 13px; }
+  .example-tag { display: inline-block; background: var(--mint); color: var(--heading-accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .error-box { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); border-radius: 22px; padding: 26px; }
+  .error-box h3 { font-size: 22px; margin-bottom: 6px; }
+  .error-box p { color: var(--text-soft); }
+
+  .verified { display: inline-flex; align-items: center; gap: 6px; background: var(--ok-bg); color: var(--ok); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; margin-top: 14px; }
+  .changes { font-size: 13px; color: var(--text-soft); margin: 8px 0 0; }
+  .lab-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
+  .lab { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .lab th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 600; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  .lab td { padding: 11px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .lab tr:last-child td { border-bottom: none; }
+  .lab td.val { font-weight: 600; white-space: nowrap; }
+  .lab td.rng { color: var(--muted); white-space: nowrap; }
+  .lab tr.flag td { background: var(--warn-bg); }
+  .chip { display: inline-block; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .chip.low { background: var(--lo-bg); color: var(--lo); } .chip.high { background: var(--hi-bg); color: var(--hi); }
+  .chip.normal { background: var(--ok-bg); color: var(--ok); } .chip.unknown { background: var(--na-bg); color: var(--na); }
+  .lab-note { font-size: 14px; color: var(--text-soft); margin: 12px 0 0; }
+  .med-caution { background: var(--pill-bg); border: 1px solid var(--pill-line); color: var(--pill-text); border-radius: 12px; padding: 11px 14px; font-size: 14px; margin-bottom: 12px; }
+  .meds { display: grid; gap: 10px; }
+  .med { background: var(--surface-2); border-radius: 14px; padding: 14px 16px; }
+  .med-top { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .med-top b { font-size: 17px; }
+  .med p { margin: 4px 0 10px; color: var(--text-soft); font-size: 15px; }
+  .med-times { display: flex; gap: 8px; flex-wrap: wrap; }
+  .time-chip { background: #d9473a; color: #fff; text-decoration: none; font-weight: 600; font-size: 14px; padding: 8px 12px; border-radius: 10px; }
+  .todo { list-style: none; padding: 0 !important; margin: 0; }
+  .todo li { display: flex; gap: 10px; align-items: flex-start; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .todo li:last-child { border-bottom: none; }
+  .todo input { margin-top: 5px; width: 18px; height: 18px; accent-color: var(--brand); flex-shrink: 0; }
+  .todo input:checked + span { text-decoration: line-through; color: var(--muted); }
+
+  /* my medicines */
+  .timeline { display: grid; gap: 10px; }
+  .slot { display: flex; gap: 14px; align-items: center; background: var(--surface-2); border-radius: 14px; padding: 12px 14px; }
+  .slot-time { min-width: 86px; }
+  .slot-time b { display: block; font-size: 21px; font-family: 'Fraunces', serif; color: var(--heading-accent); line-height: 1.1; }
+  .slot-time small { color: var(--muted); }
+  .slot-meds { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pillchip { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-size: 14px; font-weight: 600; }
+  .del { border: 1px solid var(--line); background: transparent; color: var(--text-soft); border-radius: 10px; padding: 8px 12px; font: 500 13px 'Inter', sans-serif; cursor: pointer; margin-left: auto; }
+  .del:hover { border-color: var(--warn-line); color: var(--warn-text); }
+
+  /* safety */
+  .safety { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  .safety .card h3 { font-size: 24px; margin-bottom: 14px; }
+  .safety ul { list-style: none; padding: 0; margin: 0; }
+  .safety li { padding: 10px 0 10px 34px; position: relative; border-top: 1px solid var(--line); color: var(--text-soft); }
+  .safety li:first-child { border-top: none; }
+  .safety .yes li::before { content: '✓'; position: absolute; left: 4px; color: var(--accent); font-weight: 700; }
+  .safety .no li::before { content: '✕'; position: absolute; left: 4px; color: var(--hi); font-weight: 700; }
+  .emergency { margin-top: 22px; background: var(--brand-deep); color: #fff; border-radius: 22px; padding: 24px 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+  .emergency h3 { font-size: 24px; }
+  .emergency p { margin: 4px 0 0; color: var(--on-brand-soft); }
+  .emergency .btn { background: #fff; color: #0a4a44; }
+
+  footer { background: var(--footer); color: #c9d3d0; padding: 56px 0 100px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; }
+  footer .logo { color: #fff; }
+  footer p { margin: 10px 0 0; max-width: 380px; font-size: 14px; }
+  footer h4 { color: #fff; margin: 0 0 10px; font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+  footer ul { list-style: none; padding: 0; margin: 0; font-size: 14px; }
+  footer li { margin: 6px 0; }
+  footer a { text-decoration: none; } footer a:hover { color: #fff; }
+  .fine { border-top: 1px solid rgba(255, 255, 255, .1); margin-top: 36px; padding-top: 20px; font-size: 13px; color: #8fa09b; width: 100%; }
+
+  /* SOS + modals */
+  .sos { position: fixed; right: 22px; bottom: 22px; z-index: 60; width: 66px; height: 66px; border-radius: 50%; border: none; background: #dc2626; color: #fff; font: 800 16px 'Inter', sans-serif; letter-spacing: .04em; cursor: pointer; box-shadow: 0 10px 28px rgba(220, 38, 38, .45); }
+  .sos::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 3px solid rgba(220, 38, 38, .45); animation: ring 2s infinite; }
+  @keyframes ring { 0% { transform: scale(.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+  .overlay { position: fixed; inset: 0; z-index: 100; background: rgba(5, 12, 11, .6); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; padding: 16px; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 24px; width: min(520px, 100%); max-height: calc(100vh - 32px); overflow: auto; padding: 26px; box-shadow: var(--shadow); animation: rise .3s ease; position: relative; }
+  .modal h3 { font-size: 26px; margin-bottom: 6px; }
+  .modal > p { color: var(--text-soft); margin: 0 0 18px; }
+  .close { position: absolute; right: 16px; top: 14px; border: none; background: var(--surface-2); color: var(--text); width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; }
+  .sos-grid { display: grid; gap: 10px; }
+  .sos-act { display: flex; align-items: center; gap: 14px; padding: 16px 18px; border-radius: 16px; text-decoration: none; color: #fff; font-weight: 600; font-size: 17px; border: none; cursor: pointer; font-family: inherit; text-align: left; width: 100%; }
+  .sos-act small { display: block; font-weight: 400; font-size: 13px; opacity: .9; }
+  .sos-act .em { font-size: 28px; }
+  .sos-act.red { background: #dc2626; } .sos-act.dark { background: #7f1d1d; } .sos-act.green { background: #15803d; } .sos-act.blue { background: #1d4ed8; } .sos-act.teal { background: #0f6b63; }
+  .sos-msg { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .note-modal { width: min(760px, 100%); text-align: center; padding: 44px 34px; }
+  .note-modal .eyebrow { margin-bottom: 18px; }
+  .note-text { font-family: 'Fraunces', 'Noto Sans Devanagari', 'Noto Sans Bengali', serif; font-size: clamp(26px, 4vw, 38px); line-height: 1.4; color: var(--text); margin: 0 0 22px; }
+  .note-sub { color: var(--muted); font-size: 14px; }
+  .chat { display: flex; flex-direction: column; gap: 10px; min-height: 260px; max-height: 50vh; overflow-y: auto; padding: 6px 2px 10px; }
+  .msg { max-width: 82%; padding: 11px 15px; border-radius: 16px; font-size: 15px; animation: rise .25s ease; white-space: pre-wrap; }
+  .msg.them { background: var(--surface-2); color: var(--text); border-bottom-left-radius: 4px; align-self: flex-start; }
+  .msg.me { background: var(--brand); color: var(--on-brand); border-bottom-right-radius: 4px; align-self: flex-end; }
+  .msg.typing { color: var(--muted); font-style: italic; }
+  .chat-row { display: flex; gap: 8px; margin-top: 10px; }
+  .chat-row input { margin-top: 0; flex: 1; }
+  .chat-row .mic { position: static; flex-shrink: 0; }
+  .who { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .who .av { width: 46px; height: 46px; border-radius: 50%; background: var(--mint); display: grid; place-items: center; font-size: 24px; }
+  .who b { display: block; } .who small { color: var(--muted); }
+
+  @media (max-width: 1060px) { .free-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 960px) {
+    .hero .wrap, .app-grid { grid-template-columns: 1fr; }
+    .hero-art { height: 420px; }
+    .reasons, .steps, .features { grid-template-columns: 1fr 1fr; }
+    .nav-links { display: none; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    .hero { padding: 40px 0 56px; }
+    .hero-art { display: none; }
+    section { padding: 60px 0; }
+    .reasons, .steps, .safety, .two, .facts, .features, .free-grid, .row2 { grid-template-columns: 1fr; }
+    .card, .slip { padding: 22px 18px; }
+    .pill-btn .lbl { display: none; }
+    .conn-panel { right: 16px; }
+    .sos { width: 58px; height: 58px; right: 16px; bottom: 16px; }
+    .tab { padding: 10px 14px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="nav" id="nav">
+  <div class="wrap">
+    <a class="logo" href="#top">
+      <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>
+      Stuck Doctor
+    </a>
+    <nav class="nav-links">
+      <a href="#why">Why we wait</a>
+      <a href="#features">Features</a>
+      <a href="#app">Try it</a>
+      <a href="#free">Free care</a>
+      <a href="#safety">Safety</a>
+    </nav>
+    <div class="nav-right">
+      <button class="pill-btn icon-btn" id="bigBtn" aria-label="Make text bigger" title="Bigger text">A+</button>
+      <button class="pill-btn icon-btn" id="themeBtn" aria-label="Switch theme" title="Light / dark">🌙</button>
+      <button class="pill-btn" id="connBtn" aria-expanded="false" aria-controls="connPanel"><span class="dot" id="connDot"></span><span class="lbl" id="connLabel">Not connected</span></button>
+    </div>
+  </div>
+  <div class="conn-panel" id="connPanel">
+    <h3>Connect the AI</h3>
+    <p>The AI connects by itself. To use a different back end (like a Colab test run), paste its link here.</p>
+    <div class="conn-row">
+      <input type="url" id="connUrl" placeholder="https://xxxx.gradio.live" aria-label="Backend link">
+      <button class="btn btn-primary btn-small" id="connGo">Connect</button>
+    </div>
+    <div class="conn-msg" id="connMsg"></div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <span class="badge">🎃 Built at <b>Hacktoberfest 2026</b> · Powered by Gemma</span>
+      <h1>The hardest part of seeing a doctor is <em>starting.</em></h1>
+      <p class="lede">Speak or type in English, Hindi or Bengali. Stuck Doctor figures out <i>why</i> you keep putting it off, gives you one tiny step, finds free care if money is tight, decodes your reports, and has your back in an emergency.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="#app" data-tab="stuck">Get unstuck →</a>
+        <a class="btn btn-ghost" href="#app" data-tab="doc">Explain my report</a>
+      </div>
+      <div class="trust"><span>Not medical advice</span><span>Voice &amp; read-aloud</span><span>Free-care options</span><span>Open source</span></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <div class="mock">
+        <div class="mock-head"><div class="rx">℞</div><div>Patient<br><b>Ear ache · 2 weeks</b></div></div>
+        <p class="eyebrow" style="margin-top:18px">Diagnosis</p>
+        <p class="mock-diag">You're stuck in "it's probably nothing."</p>
+        <div class="mock-move"><small>Your 2-minute first move</small>Find one ENT clinic near you and save its number.</div>
+        <div class="mock-bubble">Namaste! Kya kal subah ka appointment mil sakta hai? 🙏</div>
+        <div class="mock-line" style="width:70%;margin-top:20px"></div>
+      </div>
+      <div class="float f1">💬 Message ready</div>
+      <div class="float f2">📅 Reminder set · 7 PM</div>
+      <div class="float f3">🎭 Call rehearsed</div>
+      <div class="float f4">🔊 Read aloud</div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Why we wait</p>
+      <h2>Putting off the doctor isn't laziness. It's six different problems.</h2>
+      <p>Each one needs a different first step. Pick the one that sounds like you, or like someone you love.</p>
+    </div>
+    <div class="reasons" id="reasons"></div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">What's inside</p>
+      <h2>Everything between "I should go" and actually going.</h2>
+    </div>
+    <div class="features">
+      <div class="feature"><div class="ico">🎙️</div><h3>Speak, don't type</h3><p>Tap the mic and talk in English, Hindi or Bengali. Every answer can be read aloud, so you don't need to read at all.</p><span class="tag">For everyone</span></div>
+      <div class="feature"><div class="ico">🎭</div><h3>Rehearse the call</h3><p>Practise booking with Meera, an AI clinic receptionist, until the real call feels easy.</p><span class="tag">Only here</span></div>
+      <div class="feature"><div class="ico">👨‍👩‍👧</div><h3>Help someone you love</h3><p>Parent or grandparent refusing to go? Get gentle messages to convince them, and an offer to go with them.</p><span class="tag">Family mode</span></div>
+      <div class="feature"><div class="ico">🧪</div><h3>Report decoder</h3><p>Every value checked against the range printed on your report, marked low, normal or high, and double-checked against your photo.</p><span class="tag">Double-checked</span></div>
+      <div class="feature"><div class="ico">💊</div><h3>My medicines</h3><p>Snap a prescription or add medicines and supplements by hand. Get your whole day's schedule and every reminder on your phone in one tap.</p><span class="tag">Never miss a dose</span></div>
+      <div class="feature"><div class="ico">📝</div><h3>After-the-visit notes</h3><p>Say what the doctor told you. Get a clean summary, a to-do list, a follow-up reminder and an update for family.</p><span class="tag">Closes the loop</span></div>
+      <div class="feature"><div class="ico">🗒️</div><h3>Show-the-doctor card</h3><p>Too awkward to say it out loud? A full-screen note in your words. Just turn your phone around.</p><span class="tag">For the shy</span></div>
+      <div class="feature"><div class="ico">💰</div><h3>Free-care finder</h3><p>Tight budget? It points you to government hospitals, free online consults and cheaper generic medicines.</p><span class="tag">For every pocket</span></div>
+      <div class="feature"><div class="ico">🚑</div><h3>SOS button</h3><p>Always one tap away: ambulance (108), emergency (112), health helpline (104), live location on WhatsApp, nearest hospital.</p><span class="tag">Always on</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="app">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Try it</p>
+      <h2>Let's get you unstuck.</h2>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" role="tab" data-pane="stuck" aria-selected="true">🩺 I'm stuck</button>
+      <button class="tab" role="tab" data-pane="doc" aria-selected="false">🧪 Report / prescription</button>
+      <button class="tab" role="tab" data-pane="visit" aria-selected="false">📝 After my visit</button>
+      <button class="tab" role="tab" data-pane="meds" aria-selected="false">💊 My medicines</button>
+    </div>
+
+    <div class="app-grid">
+      <div class="card">
+        <!-- STUCK -->
+        <form class="pane active" id="pane-stuck">
+          <div class="field">Who is this for?
+            <div class="seg" id="forSeg">
+              <label><input type="radio" name="forwho" value="Me" checked><span>🙋 Me</span></label>
+              <label><input type="radio" name="forwho" value="Someone I care about"><span>👨‍👩‍👧 Someone I care about</span></label>
+            </div>
+          </div>
+          <label class="field" id="relField" hidden>Who are you helping?
+            <input type="text" id="relation" placeholder="e.g. my mother, my grandfather">
+          </label>
+          <label class="field"><span id="taskLabel">What are you putting off?</span>
+            <span class="with-mic"><textarea id="task" placeholder="e.g. seeing a doctor about my ear ache that's been going on for 2 weeks"></textarea><button type="button" class="mic" data-for="task" data-lang="lang1" aria-label="Speak instead of typing">🎙️</button></span>
+            <span class="mic-hint">Tap 🎙️ to speak. Pick Hindi or Bengali below to speak in those languages.</span>
+          </label>
+          <label class="field">Why is it being put off?
+            <select id="reason"></select>
+          </label>
+          <div class="row2">
+            <label class="field">When to take the first step?
+              <select id="when">
+                <option>I'm not sure, guide me</option>
+                <option>In 1 hour</option>
+                <option>Tonight (7 PM)</option>
+                <option>Tomorrow morning (10 AM)</option>
+                <option>This Saturday (11 AM)</option>
+              </select>
+            </label>
+            <label class="field">Budget
+              <select id="budget">
+                <option>Any</option>
+                <option>Low cost</option>
+                <option>Free / government only</option>
+              </select>
+            </label>
+          </div>
+          <div class="field">Language
+            <div class="seg" data-name="lang1"></div>
+          </div>
+          <label class="field">Anything else? <span style="font-weight:400;color:var(--muted)">(optional)</span>
+            <input type="text" id="details" placeholder="e.g. I've delayed this for two months">
+          </label>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goStuck">Get my prescription 💊</button>
+          <p class="form-note">Stuck Doctor doesn't diagnose or treat. It helps you get to someone who can.</p>
+        </form>
+
+        <!-- DOC -->
+        <form class="pane" id="pane-doc">
+          <div class="field">Upload a photo of your report or prescription
+            <div class="drop" id="drop" tabindex="0" role="button" aria-label="Upload a photo">
+              <div id="dropInner">
+                <div class="big-ico">🧪</div>
+                <strong>Drop a photo here, or tap to choose</strong>
+                <small>Blood test, report, prescription or clinic card · JPG or PNG</small>
+              </div>
+            </div>
+            <input type="file" id="file" accept="image/*" hidden>
+          </div>
+          <label class="check"><input type="checkbox" id="dbl" checked><span><b>Double-check the numbers</b><br>Reads your photo a second time to catch mistakes. Slower, more accurate.</span></label>
+          <div class="field">Language
+            <div class="seg" data-name="lang2"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goDoc">Explain it 🔍</button>
+          <p class="form-note">Values are compared with the range printed on your report. Only your doctor can say what they mean for you.</p>
+        </form>
+
+        <!-- VISIT -->
+        <form class="pane" id="pane-visit">
+          <label class="field">What did the doctor say?
+            <span class="with-mic"><textarea id="notes" style="min-height:150px" placeholder="e.g. doctor said ear infection, take the drops 3 times a day for 5 days, no swimming, come back after 1 week. Also said get a hearing test."></textarea><button type="button" class="mic" data-for="notes" data-lang="lang3" aria-label="Speak instead of typing">🎙️</button></span>
+            <span class="mic-hint">Messy is fine. Say it just like you'd tell a friend.</span>
+          </label>
+          <div class="field">Language
+            <div class="seg" data-name="lang3"></div>
+          </div>
+          <button class="btn btn-primary" style="width:100%" type="submit" id="goVisit">Make my visit summary 📝</button>
+          <p class="form-note">Uses only what you wrote. It never adds advice of its own.</p>
+        </form>
+
+        <!-- MY MEDICINES -->
+        <form class="pane" id="pane-meds">
+          <button type="button" class="btn btn-ghost" style="width:100%;margin-bottom:8px" id="medPhotoBtn">📷 Read medicines from a prescription photo</button>
+          <input type="file" id="medFile" accept="image/*" hidden>
+          <p class="form-note" style="margin:6px 0 20px">Or add a medicine or supplement by hand:</p>
+          <label class="field">Medicine or supplement name
+            <input type="text" id="mName" placeholder="e.g. Vitamin D3, Paracetamol 500, Iron tablet">
+          </label>
+          <label class="field">Dose, exactly as your doctor or the label says
+            <input type="text" id="mDose" placeholder="e.g. 1 tablet, 5 ml, 2 drops">
+          </label>
+          <div class="field">When to take it
+            <div class="seg" id="slotSeg"></div>
+            <label style="display:block;margin-top:12px;font-weight:500;color:var(--text-soft)">Or pick a custom time
+              <input type="time" id="mTime">
+            </label>
+          </div>
+          <div class="row2">
+            <label class="field">For how many days?
+              <input type="number" id="mDays" min="1" max="365" placeholder="Empty = every day">
+            </label>
+            <label class="field">Food
+              <select id="mFood"><option>Any time</option><option>Before food</option><option>After food</option><option>With food</option><option>Empty stomach</option></select>
+            </label>
+          </div>
+          <label class="field">Notes <span style="font-weight:400;color:var(--muted)">(optional)</span>
+            <input type="text" id="mNotes" placeholder="e.g. with warm water">
+          </label>
+          <button class="btn btn-primary" style="width:100%" type="submit">Add to my list 💊</button>
+          <p class="form-note" id="medMsg">Stuck Doctor only reminds you. It never decides doses.</p>
+        </form>
+      </div>
+
+      <div id="result"></div>
+    </div>
+  </div>
+</section>
+
+<section id="free">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Free &amp; low-cost care</p>
+      <h2>Money shouldn't be the reason you wait.</h2>
+      <p>Options that exist across India, whatever your budget. Check eligibility and details on each official site.</p>
+    </div>
+    <div class="free-grid">
+      <a class="free" href="https://esanjeevani.mohfw.gov.in" target="_blank" rel="noopener"><div class="ico">📱</div><h3>eSanjeevani</h3><p>Free online doctor consultation from the Government of India, from your phone.</p><span class="go">Open →</span></a>
+      <a class="free" href="https://www.google.com/maps/search/?api=1&query=government%20hospital%20near%20me" target="_blank" rel="noopener"><div class="ico">🏥</div><h3>Government hospital / PHC</h3><p>OPD consultations at government hospitals and Primary Health Centres cost little or nothing.</p><span class="go">Find nearby →</span></a>
+      <a class="free" href="https://www.google.com/maps/search/?api=1&query=Jan%20Aushadhi%20Kendra%20near%20me" target="_blank" rel="noopener"><div class="ico">💊</div><h3>Jan Aushadhi stores</h3><p>Government stores selling quality generic medicines at much lower prices.</p><span class="go">Find nearby →</span></a>
+      <a class="free" href="https://pmjay.gov.in" target="_blank" rel="noopener"><div class="ico">🪪</div><h3>Ayushman Bharat</h3><p>Free hospital treatment for eligible families under PM-JAY. Check if your family qualifies.</p><span class="go">Check →</span></a>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="safety">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">Safety</p>
+      <h2>A nudge, not a doctor.</h2>
+      <p>Stuck Doctor is built to get you <i>to</i> care, never to replace it.</p>
+    </div>
+    <div class="safety">
+      <div class="card yes"><h3>Stuck Doctor will</h3>
+        <ul><li>Help you understand why you (or a loved one) are avoiding it</li><li>Give one tiny, doable first step</li><li>Explain report terms and show which values fall outside the printed range</li><li>Turn your doctor's written instructions into reminders</li><li>Flag warning signs that mean "go sooner"</li></ul>
+      </div>
+      <div class="card no"><h3>Stuck Doctor won't</h3>
+        <ul><li>Diagnose what's wrong with you</li><li>Suggest medicines, doses or home remedies of its own</li><li>Read X-ray, MRI or CT images (that needs a trained doctor)</li><li>Book appointments or know a doctor's availability</li><li>Replace a real doctor or pharmacist, ever</li></ul>
+      </div>
+    </div>
+    <div class="emergency">
+      <div><h3>Is it an emergency?</h3><p>Chest pain, trouble breathing, heavy bleeding, fainting or signs of stroke: don't wait. Get help now.</p></div>
+      <button class="btn" id="sosInline">🚑 Open SOS</button>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <a class="logo" href="#top"><span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>Stuck Doctor</a>
+      <p>For everyone who's said "I'll go next week" for the fifth week in a row, and for everyone trying to get a loved one to go. Built in one day at Hacktoberfest 2026.</p>
+    </div>
+    <div>
+      <h4>Built with</h4>
+      <ul><li><a href="https://ai.google.dev/gemma" target="_blank" rel="noopener">Gemma</a></li><li><a href="https://ollama.com" target="_blank" rel="noopener">Ollama</a></li><li><a href="https://gradio.app" target="_blank" rel="noopener">Gradio</a></li><li>Render</li></ul>
+    </div>
+    <div>
+      <h4>Project</h4>
+      <ul><li><a href="https://github.com/KK-Dev0/Stuck_Doctor" target="_blank" rel="noopener">GitHub repo</a></li><li><a href="#free">Free care</a></li><li><a href="#safety">Safety</a></li></ul>
+    </div>
+    <div class="fine">Not medical advice. In an emergency in India, call 108 (ambulance) or 112. Free-care schemes have their own eligibility rules; check the official sites. Code under the MIT License. Gemma is subject to Google's Gemma terms of use. AI assistance was used in building this project.</div>
+  </div>
+</footer>
+
+<button class="sos" id="sosBtn" aria-label="Emergency help">SOS</button>
+<div class="overlay" id="sosModal" role="dialog" aria-modal="true" aria-labelledby="sosTitle">
+  <div class="modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <h3 id="sosTitle">Get help now</h3>
+    <p>If this is an emergency, don't wait. Tap one of these.</p>
+    <div class="sos-grid">
+      <a class="sos-act red" href="tel:108"><span class="em">🚑</span><span>Call an ambulance<small>108 · free in most Indian states</small></span></a>
+      <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112 · police, fire, ambulance</small></span></a>
+      <a class="sos-act teal" href="tel:104"><span class="em">☎️</span><span>Health helpline<small>104 · health advice, available in many states</small></span></a>
+      <button class="sos-act green" id="shareLoc"><span class="em">📍</span><span>Share my location on WhatsApp<small>Sends a map link to someone you trust</small></span></button>
+      <a class="sos-act blue" href="https://www.google.com/maps/search/?api=1&query=hospital%20emergency%20near%20me" target="_blank" rel="noopener"><span class="em">🏥</span><span>Find the nearest hospital<small>Opens Google Maps</small></span></a>
+    </div>
+    <p class="sos-msg" id="sosMsg"></p>
+  </div>
+</div>
+
+<div class="overlay" id="noteModal" role="dialog" aria-modal="true">
+  <div class="modal note-modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <p class="eyebrow">🗒️ Show this to your doctor</p>
+    <p class="note-text" id="noteText"></p>
+    <p class="note-sub">Turn your screen around. You don't have to say a word.</p>
+  </div>
+</div>
+
+<div class="overlay" id="callModal" role="dialog" aria-modal="true" aria-labelledby="callTitle">
+  <div class="modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <div class="who"><div class="av">👩‍💼</div><div><b id="callTitle">Meera · City Care Clinic</b><small>AI receptionist · practice call</small></div></div>
+    <div class="chat" id="chat"></div>
+    <form class="chat-row" id="chatForm">
+      <input type="text" id="chatIn" placeholder="Type or speak what you'd say…" autocomplete="off" aria-label="Your reply">
+      <button type="button" class="mic" data-for="chatIn" data-lang="lang1" aria-label="Speak">🎙️</button>
+      <button class="btn btn-primary btn-small" type="submit">Send</button>
+    </form>
+    <p class="sos-msg">Practice only. Nothing is booked. When you're ready, make the real call.</p>
+  </div>
+</div>
+
+<script type="module">
+import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+
+/* ---------- data ---------- */
+const REASONS = [
+  ["😰", "Scared of bad news", "What if it's something serious?"],
+  ["📞", "I hate calling to book", "Phone calls feel like a boss fight."],
+  ["🤷", "It's probably nothing", "It'll go away on its own… right?"],
+  ["🧭", "Don't know which doctor to see", "Skin? ENT? General? No idea."],
+  ["⏳", "Worried about cost or time", "Fees, queues, a whole day gone."],
+  ["🙈", "It feels awkward or embarrassing", "How do I even say this out loud?"],
+];
+const LANGS = ["Auto", "English", "Hindi", "Hinglish", "Bengali"];
+const SPEECH = { Auto: "en-IN", English: "en-IN", Hindi: "hi-IN", Hinglish: "en-IN", Bengali: "bn-IN" };
+const LOAD = {
+  stuck: ["Reading your situation…", "Diagnosing the stuck…", "Finding your first move…", "Writing your messages…"],
+  doc: ["Reading your photo…", "Finding the numbers…", "Double-checking every value…", "Putting it in plain words…"],
+  visit: ["Reading your notes…", "Finding the to-dos…", "Spotting follow-up dates…", "Writing your summary…"],
+};
+const EXAMPLE = {
+  example: true, task: "Ear ache for 2 weeks", date: "Today", urgent: false, helping: false,
+  diagnosis: "You're stuck in \"it's probably nothing\": hoping it fades so you never have to deal with it.",
+  first_move: "Open Google Maps, find one ENT clinic near you, and save its number in your phone.",
+  guided: true, chosen: "Tonight (7 PM)", why_this_time: "Evenings are quieter, and booking tonight means you could be seen tomorrow.",
+  message: "Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?",
+  questions: ["What could be causing this?", "Do I need any tests?", "What should I avoid until it heals?"],
+  while_you_wait: ["Rest in a quiet place and avoid loud music.", "Keep your head slightly raised while lying down."],
+  see_sooner_if: ["The pain suddenly gets much worse", "You get a high fever", "There's fluid or blood from the ear"],
+  doctor_note: "I've had pain in my ear for about two weeks. I kept hoping it would go away on its own.",
+  buddy_message: "Hey! I finally booked a doctor for my ear. Could you come with me? Chai after, my treat ☕",
+  bring_list: ["A photo ID", "Any old prescriptions or reports", "A list of medicines you take", "Notes on when the pain started"],
+  cost_tips: [], push: "Two minutes tonight saves you two more weeks of wondering.", doctor_type: "ENT specialist", search_label: "ENT specialist",
+  links: {
+    whatsapp: "https://wa.me/?text=" + encodeURIComponent("Namaste! Mujhe 2 hafte se kaan mein dard hai. Kya kal ka appointment mil sakta hai?"),
+    maps: "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("ENT specialist near me"),
+    buddy: "https://wa.me/?text=" + encodeURIComponent("Hey! I finally booked a doctor for my ear. Could you come with me? Chai after, my treat ☕"),
+    calendar: ""
+  }
+};
+
+/* ---------- helpers ---------- */
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const arr = (a) => Array.isArray(a) ? a : [];
+const ul = (a) => `<ul>${arr(a).map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+const safeUrl = (u) => typeof u === "string" && /^(https:|tel:)/.test(u) ? u : "";
+const act = (url, cls, label) => safeUrl(url) ? `<a class="act ${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>` : "";
+const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+const lang = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+
+/* ---------- theme + text size ---------- */
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  $("#themeBtn").textContent = t === "dark" ? "☀️" : "🌙";
+  $("#themeBtn").setAttribute("aria-label", t === "dark" ? "Switch to light theme" : "Switch to dark theme");
+}
+applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+$("#themeBtn").addEventListener("click", () => {
+  const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  applyTheme(next); store.set("sd_theme", next);
+});
+$("#bigBtn").addEventListener("click", () => {
+  const on = document.documentElement.classList.toggle("big");
+  store.set("sd_big", on ? "1" : "0");
+});
+
+/* ---------- build UI ---------- */
+$("#reasons").innerHTML = REASONS.map(([ico, title, line], i) =>
+  `<button class="reason" data-i="${i}"><div class="ico">${ico}</div><h3>${esc(title)}</h3><p>${esc(line)}</p><span class="go">This is me →</span></button>`).join("");
+$("#reason").innerHTML = REASONS.map(([, t]) => `<option>${esc(t)}</option>`).join("");
+document.querySelectorAll(".seg[data-name]").forEach((seg) => {
+  const name = seg.dataset.name;
+  seg.innerHTML = LANGS.map((l, i) => `<label><input type="radio" name="${name}" value="${l}" ${i === 0 ? "checked" : ""}><span>${l === "Auto" ? "✨ Auto" : l}</span></label>`).join("");
+});
+document.querySelectorAll(".reason").forEach((b) => b.addEventListener("click", () => {
+  $("#reason").value = REASONS[b.dataset.i][1];
+  showTab("stuck"); $("#app").scrollIntoView({ behavior: "smooth" });
+  setTimeout(() => $("#task").focus(), 500);
+}));
+const forWho = () => document.querySelector("input[name=forwho]:checked").value;
+document.querySelectorAll("input[name=forwho]").forEach((r) => r.addEventListener("change", () => {
+  const helping = forWho() !== "Me";
+  $("#relField").hidden = !helping;
+  $("#taskLabel").textContent = helping ? "What are they putting off?" : "What are you putting off?";
+  $("#task").placeholder = helping ? "e.g. my mother has had knee pain for months but refuses to see a doctor" : "e.g. seeing a doctor about my ear ache that's been going on for 2 weeks";
+}));
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  document.querySelectorAll(".tab").forEach((t) => { const on = t.dataset.pane === name; t.classList.toggle("active", on); t.setAttribute("aria-selected", on); });
+  document.querySelectorAll(".pane").forEach((p) => p.classList.toggle("active", p.id === "pane-" + name));
+  stopSpeaking(); name === "meds" ? renderMeds() : renderEmpty(name);
+}
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => showTab(t.dataset.pane)));
+document.querySelectorAll("[data-tab]").forEach((a) => a.addEventListener("click", () => showTab(a.dataset.tab)));
+
+/* ---------- nav ---------- */
+addEventListener("scroll", () => $("#nav").classList.toggle("scrolled", scrollY > 10));
+$("#connBtn").addEventListener("click", () => {
+  const open = $("#connPanel").classList.toggle("open");
+  $("#connBtn").setAttribute("aria-expanded", open);
+  if (open) $("#connUrl").focus();
+});
+
+/* ---------- modals ---------- */
+function openModal(id) { $(id).classList.add("open"); }
+function closeModals() { document.querySelectorAll(".overlay").forEach((o) => o.classList.remove("open")); }
+document.querySelectorAll(".overlay").forEach((o) => o.addEventListener("click", (e) => { if (e.target === o || e.target.closest("[data-close]")) closeModals(); }));
+addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
+
+/* ---------- SOS ---------- */
+$("#sosBtn").addEventListener("click", () => openModal("#sosModal"));
+$("#sosInline").addEventListener("click", () => openModal("#sosModal"));
+$("#shareLoc").addEventListener("click", () => {
+  const msg = $("#sosMsg");
+  if (!navigator.geolocation) { msg.textContent = "Your browser can't share location. Call 108 or 112 instead."; return; }
+  msg.textContent = "Getting your location…";
+  navigator.geolocation.getCurrentPosition((pos) => {
+    const { latitude: la, longitude: lo } = pos.coords;
+    const text = `I need help. This is my location right now: https://www.google.com/maps?q=${la.toFixed(6)},${lo.toFixed(6)}`;
+    msg.textContent = "Location ready. Pick who to send it to in WhatsApp.";
+    window.open("https://wa.me/?text=" + encodeURIComponent(text), "_blank", "noopener");
+  }, () => { msg.textContent = "Couldn't get your location. Allow location access, or call 108 or 112."; }, { enableHighAccuracy: true, timeout: 10000 });
+});
+
+/* ---------- voice in ---------- */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let activeRec = null;
+document.querySelectorAll(".mic").forEach((btn) => {
+  if (!SR) { btn.title = "Voice typing works in Chrome or Edge"; btn.addEventListener("click", () => alert("Voice typing works in Chrome or Edge. You can still type.")); return; }
+  btn.addEventListener("click", () => {
+    if (activeRec) { activeRec.stop(); return; }
+    const field = document.getElementById(btn.dataset.for);
+    const rec = new SR();
+    rec.lang = SPEECH[lang(btn.dataset.lang)] || "en-IN";
+    rec.continuous = true; rec.interimResults = false;
+    rec.onresult = (e) => {
+      for (let i = e.resultIndex; i < e.results.length; i++)
+        if (e.results[i].isFinal) field.value = (field.value + " " + e.results[i][0].transcript).trim();
+    };
+    rec.onend = () => { activeRec = null; btn.classList.remove("rec"); btn.textContent = "🎙️"; };
+    rec.onerror = () => rec.stop();
+    activeRec = rec; rec.start(); btn.classList.add("rec"); btn.textContent = "⏹";
+  });
+});
+
+/* ---------- voice out ---------- */
+let speakText = "", speaking = false;
+function langOf(text) { return /[\u0980-\u09FF]/.test(text) ? "bn-IN" : /[\u0900-\u097F]/.test(text) ? "hi-IN" : "en-IN"; }
+function stopSpeaking() { if ("speechSynthesis" in window) speechSynthesis.cancel(); speaking = false; const b = $("#speakBtn"); if (b) b.textContent = "🔊 Read aloud"; }
+function speakAll(text) {
+  if (!("speechSynthesis" in window)) { alert("Read-aloud isn't supported in this browser."); return; }
+  stopSpeaking();
+  const code = langOf(text);
+  const voices = speechSynthesis.getVoices();
+  const voice = voices.find((v) => v.lang === code) || voices.find((v) => v.lang.startsWith(code.slice(0, 2)));
+  const chunks = text.match(/[^.!?।\n]+[.!?।]?/g) || [text];
+  speaking = true;
+  chunks.map((c) => c.trim()).filter(Boolean).forEach((c, i, all) => {
+    const u = new SpeechSynthesisUtterance(c);
+    u.lang = code; if (voice) u.voice = voice; u.rate = 0.95;
+    if (i === all.length - 1) u.onend = () => stopSpeaking();
+    speechSynthesis.speak(u);
+  });
+  const b = $("#speakBtn"); if (b) b.textContent = "⏹ Stop";
+}
+function wireSpeak(text) {
+  speakText = text;
+  const b = $("#speakBtn");
+  if (b) b.addEventListener("click", () => speaking ? stopSpeaking() : speakAll(speakText));
+}
+const speakRow = `<div class="speak-row"><button class="speak" id="speakBtn">🔊 Read aloud</button></div>`;
+const joinSay = (...parts) => parts.flat().filter(Boolean).map(String).join(". ");
+
+/* ---------- backend connection ---------- */
+let client = null;
+function setStatus(state, msg = "", ok = false) {
+  $("#connDot").className = "dot " + (state === "on" ? "on" : state === "busy" ? "busy" : "");
+  $("#connLabel").textContent = state === "on" ? "AI connected" : state === "busy" ? "Connecting…" : "Not connected";
+  $("#connMsg").textContent = msg;
+  $("#connMsg").className = "conn-msg " + (msg ? (ok ? "ok" : "err") : "");
+}
+async function connect(url) {
+  url = (url || "").trim().replace(/\/+$/, "");
+  if (!/^https:\/\/.+/.test(url)) { setStatus("off", "Paste the full https://… back-end link."); return false; }
+  if (/github\.io/.test(url)) { setStatus("off", "That's your website link. Paste the back-end link instead."); return false; }
+  setStatus("busy");
+  try {
+    client = await Client.connect(url);
+    store.set("sd_backend", url); $("#connUrl").value = url;
+    setStatus("on", "Connected! You're ready to go.", true);
+    setTimeout(() => $("#connPanel").classList.remove("open"), 900);
+    return true;
+  } catch (e) {
+    client = null;
+    setStatus("off", "Couldn't reach the AI. It may be waking up after a rest: wait a minute and refresh the page.");
+    return false;
+  }
+}
+$("#connGo").addEventListener("click", () => connect($("#connUrl").value));
+$("#connUrl").addEventListener("keydown", (e) => { if (e.key === "Enter") connect($("#connUrl").value); });
+// 👇 Your always-on Render back end. Change this if Render gives you a different address.
+const DEFAULT_BACKEND = "https://stuck-doctor.onrender.com";
+const startUrl = new URLSearchParams(location.search).get("backend") || DEFAULT_BACKEND || store.get("sd_backend");
+if (startUrl) { $("#connUrl").value = startUrl; connect(startUrl); }
+function needClient() {
+  if (client) return true;
+  $("#connPanel").classList.add("open");
+  setStatus("off", "Connect the AI first: paste your gradio.live link.");
+  scrollTo({ top: 0, behavior: "smooth" });
+  return false;
+}
+
+/* ---------- shared render bits ---------- */
+function renderEmpty(tab = "stuck") {
+  const views = {
+    stuck: `<div class="empty"><div class="rx">℞</div><h3>Your prescription will appear here</h3><p>Fill in the form and tap <b>Get my prescription</b>.</p><button class="btn btn-ghost btn-small" id="exampleBtn">See an example</button></div>`,
+    doc: `<div class="empty"><div class="rx">🧪</div><h3>Your report, in plain words</h3><p>Upload a blood test, report or prescription. Values get checked against the printed range, medicines become reminders.</p></div>`,
+    visit: `<div class="empty"><div class="rx">📝</div><h3>Your visit, organised</h3><p>Say or type what the doctor told you. Get a summary, a to-do list and a follow-up reminder.</p></div>`,
+  };
+  $("#result").innerHTML = views[tab] || views.stuck;
+  const ex = $("#exampleBtn"); if (ex) ex.addEventListener("click", () => renderRx(EXAMPLE));
+}
+let loadTimer;
+function renderLoading(lines, note = "") {
+  let i = 0;
+  $("#result").innerHTML = `<div class="card loading"><div class="spinner"></div><p id="loadMsg">${lines[0]}</p>${note ? `<small>${esc(note)}</small>` : ""}</div>`;
+  clearInterval(loadTimer);
+  loadTimer = setInterval(() => { const el = $("#loadMsg"); if (!el) return clearInterval(loadTimer); el.textContent = lines[++i % lines.length]; }, 2000);
+}
+function renderError(msg) {
+  clearInterval(loadTimer);
+  $("#result").innerHTML = `<div class="error-box"><h3>Hmm, that didn't work 😵</h3><p>${esc(msg)}</p></div>`;
+}
+
+/* ---------- render: prescription ---------- */
+function renderRx(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  const L = d.links || {};
+  const rel = d.relation || "loved one";
+  const tips = arr(d.cost_tips);
+  $("#result").innerHTML = `
+  <article class="slip">
+    ${d.example ? `<span class="example-tag">Example prescription</span>` : ""}
+    <div class="slip-head"><div class="rx">℞</div>
+      <div class="slip-meta"><span>${d.helping ? "For your " + esc(rel) : "Patient"}</span><b>${esc(d.task)}</b><span>${esc(d.date)}</span></div></div>
+    ${speakRow}
+    ${d.urgent ? `<div class="urgent"><span>⚠️ This sounds like it needs attention soon. Please get medical help today.</span><a href="#" id="urgentSos">Open SOS</a></div>` : ""}
+    <p class="eyebrow">Diagnosis</p><p class="diag">${esc(d.diagnosis)}</p>
+    <div class="move"><p class="eyebrow">${d.helping ? "Your 2-minute move to help" : "Your 2-minute first move"}</p><p>${esc(d.first_move)}</p></div>
+    ${d.guided ? `<div class="pill-time">🕒 Best time: <b>${esc(d.chosen)}</b> · ${esc(d.why_this_time)}</div>` : ""}
+    <p class="eyebrow">${d.helping ? "Message for your " + esc(rel) : "Message to send the clinic"}</p><div class="bubble">${esc(d.message)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.maps, "maps", "📍 Find a " + (d.search_label || d.doctor_type || "doctor"))}
+      ${act(L.calendar, "cal", "📅 Remind me · " + (d.chosen || ""))}
+    </div>
+    ${tips.length ? `<div class="money"><p class="eyebrow">💰 Saving money</p>${ul(tips)}<div class="links"><a href="https://esanjeevani.mohfw.gov.in" target="_blank" rel="noopener">📱 eSanjeevani (free online doctor)</a><a href="https://www.google.com/maps/search/?api=1&query=Jan%20Aushadhi%20Kendra%20near%20me" target="_blank" rel="noopener">💊 Jan Aushadhi near me</a><a href="https://www.google.com/maps/search/?api=1&query=government%20hospital%20near%20me" target="_blank" rel="noopener">🏥 Government hospital</a></div></div>` : ""}
+    <p class="eyebrow" style="margin-top:26px">Extra help</p>
+    <div class="actions" style="margin-top:0">
+      <button class="act alt1" id="rehearseBtn">🎭 Rehearse the call</button>
+      ${d.doctor_note ? `<button class="act alt3" id="noteBtn">🗒️ Show-the-doctor card</button>` : ""}
+      ${act(L.buddy, "alt2", d.helping ? "🤝 Offer to go with them" : "🤝 Ask a friend to come")}
+    </div>
+    <div class="two">
+      <div><p class="eyebrow">Ask the doctor</p>${ul(d.questions)}</div>
+      <div><p class="eyebrow">Pack for the visit 🎒</p>${ul(d.bring_list)}</div>
+    </div>
+    <p class="eyebrow">While you wait</p>${ul(d.while_you_wait)}
+    <div class="warn"><p class="eyebrow">See a doctor sooner if</p>${ul(d.see_sooner_if)}</div>
+    <p class="push">“${esc(d.push)}”</p>
+    <p class="sign">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+  const us = $("#urgentSos"); if (us) us.addEventListener("click", (e) => { e.preventDefault(); openModal("#sosModal"); });
+  const nb = $("#noteBtn"); if (nb) nb.addEventListener("click", () => { $("#noteText").textContent = d.doctor_note; openModal("#noteModal"); });
+  $("#rehearseBtn").addEventListener("click", () => startRehearsal(d));
+  wireSpeak(joinSay(d.urgent ? "This sounds urgent. Please get medical help today" : "", d.diagnosis, d.first_move,
+    d.guided ? `Best time: ${d.chosen}. ${d.why_this_time}` : "", d.message, arr(d.cost_tips), arr(d.see_sooner_if), d.push));
+}
+
+/* ---------- render: document ---------- */
+function renderDoc(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  if (d.doc_type === "unreadable") return renderError(d.summary || "I couldn't read that photo. Try a clearer, well-lit picture.");
+  const L = d.links || {};
+  const terms = arr(d.explained).filter((t) => t && t.term);
+  const values = d.is_scan ? [] : arr(d.values).filter((v) => v && v.test);
+  const meds = d.is_scan ? [] : arr(d.medicines).filter((m) => m && m.name);
+  const count = (s) => values.filter((v) => v.status === s).length;
+  const outside = count("low") + count("high");
+  const label = { low: "Low", high: "High", normal: "Normal", unknown: "No range" };
+  const fact = (k, v) => v ? `<div class="fact"><small>${k}</small><b>${esc(v)}</b></div>` : "";
+  const facts = fact("Clinic", d.clinic_name) + fact("Doctor", d.doctor_name) + fact("Phone", d.phone) + fact("Follow-up", d.follow_up);
+  const changes = arr(d.changes);
+
+  const table = values.length ? `
+    <p class="eyebrow">Your values</p>
+    <div class="lab-summary">
+      <span class="chip normal">${count("normal")} normal</span>
+      ${count("low") ? `<span class="chip low">${count("low")} low</span>` : ""}
+      ${count("high") ? `<span class="chip high">${count("high")} high</span>` : ""}
+      ${count("unknown") ? `<span class="chip unknown">${count("unknown")} no range printed</span>` : ""}
+    </div>
+    <div class="table-wrap"><table class="lab">
+      <thead><tr><th>Test</th><th>Your value</th><th>Normal range</th><th></th></tr></thead>
+      <tbody>${values.map((v) => `<tr class="${v.status === "low" || v.status === "high" ? "flag" : ""}">
+        <td>${esc(v.test)}</td><td class="val">${esc(v.value)} ${esc(v.unit || "")}</td>
+        <td class="rng">${esc(v.range || "—")}</td><td><span class="chip ${esc(v.status)}">${label[v.status] || "No range"}</span></td></tr>`).join("")}</tbody>
+    </table></div>
+    <p class="lab-note">${outside
+      ? `<b>${outside} value${outside > 1 ? "s are" : " is"} outside the range printed on your report.</b> That's common and doesn't always mean something is wrong, but show this report to your doctor soon. Only they can say what it means for you.`
+      : `All values with a printed range fall inside it. Still share the report with your doctor, since they look at the whole picture.`}</p>` : "";
+
+  const medsHtml = meds.length ? `
+    <p class="eyebrow">💊 Medicine reminders</p>
+    <div class="med-caution">⚠️ Read from your prescription by AI. Check each one against the paper and confirm with your pharmacist before following. Tap a time to add a daily reminder.</div>
+    <div class="meds">${meds.map((m) => `<div class="med">
+      <div class="med-top"><b>${esc(m.name)}</b>${m.days ? `<span class="chip normal">${esc(m.days)} days</span>` : ""}</div>
+      <p>${esc(m.as_written)}${m.with_food ? ` · ${esc(m.with_food)}` : ""}</p>
+      <div class="med-times">${arr(m.reminders).map((r) => safeUrl(r.url) ? `<a class="time-chip" href="${esc(r.url)}" target="_blank" rel="noopener">⏰ ${esc(r.time)}</a>` : "").join("") || `<span class="muted" style="font-size:14px">No fixed time written. Ask your pharmacist when to take it.</span>`}</div>
+    </div>`).join("")}</div>` : "";
+
+  $("#result").innerHTML = `
+  <article class="slip">
+    <div class="slip-head"><div class="rx">${meds.length ? "💊" : "🧪"}</div>
+      <div class="slip-meta"><span>Document</span><b>${esc(d.doc_type)}</b></div></div>
+    ${speakRow}
+    ${d.verified ? `<span class="verified">✓ Double-checked against your photo</span>${changes.length ? `<p class="changes">Fixed on second check: ${changes.map(esc).join(" · ")}</p>` : ""}` : ""}
+    ${d.is_scan ? `<div class="pill-time">🩻 This looks like a scan image (like an X-ray or MRI). Reading scans needs a trained doctor, and an AI guess could be dangerously wrong, so Stuck Doctor won't try. Please show it to a doctor. If you have the written report that came with it, upload that and I'll explain it.</div>` : ""}
+    <p class="eyebrow">What it says</p><p class="diag" style="font-size:19px">${esc(d.summary)}</p>
+    ${table}
+    ${medsHtml}
+    ${terms.length ? `<p class="eyebrow">In plain words</p><div class="terms">${terms.map((t) => `<div class="term"><b>${esc(t.term)}</b><span>${esc(t.meaning)}</span></div>`).join("")}</div>` : ""}
+    ${facts ? `<p class="eyebrow">Details found</p><div class="facts">${facts}</div>` : ""}
+    <p class="eyebrow">Ask the doctor or pharmacist</p>${ul(d.questions)}
+    <p class="eyebrow">Message to send</p><div class="bubble">${esc(d.message)}</div>
+    <div class="actions">
+      ${act(L.whatsapp, "wa", "💬 Send on WhatsApp")}
+      ${act(L.call, "call", "📞 Call clinic")}
+      ${act(L.maps, "maps", "📍 Find clinic")}
+    </div>
+    <p class="sign" style="margin-top:22px">— Stuck Doctor <span>· not medical advice</span></p>
+  </article>`;
+  wireSpeak(joinSay(d.summary,
+    values.length ? (outside ? `${outside} values are outside the range printed on your report. Please show it to your doctor soon` : "All values with a printed range are inside it") : "",
+    meds.map((m) => `${m.name}: ${m.as_written}`), terms.map((t) => `${t.term}: ${t.meaning}`)));
+}
+
+/* ---------- render: visit ---------- */
+function renderVisit(d) {
+  clearInterval(loadTimer);
+  if (d.error) return renderError(d.error);
+  const L = d.links || {};
+  const meds = arr(d.medicines).filter((m) => m && m.name);
+  $("#result").innerHTML = `
+  <article class="slip">
+    <div class="slip-head"><div class="rx">📝</div>
+      <div class="slip-meta"><span>Visit summary</span><b>${new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}</b></div></div>
+    ${speakRow}
+    <p class="eyebrow">What the doctor said</p><p class="diag" style="font-size:20px">${esc(d.summary)}</p>
+    ${arr(d.todo).length ? `<p class="eyebrow">Your to-do list</p><ul class="todo">${arr(d.todo).map((t) => `<li><input type="checkbox" aria-label="Done"><span>${esc(t)}</span></li>`).join("")}</ul>` : ""}
+    ${meds.length ? `<p class="eyebrow">Medicines mentioned</p><div class="meds">${meds.map((m) => `<div class="med"><div class="med-top"><b>${esc(m.name)}</b></div><p>${esc(m.as_said)}</p></div>`).join("")}</div>
+      <p class="lab-note">Have the written prescription? Upload it in the <b>Report / prescription</b> tab to get reminders.</p>` : ""}
+    ${d.follow_up_text || d.follow_up_pretty ? `<div class="move"><p class="eyebrow">Follow-up</p><p>${esc(d.follow_up_text || "")}${d.follow_up_pretty ? ` · <b>${esc(d.follow_up_pretty)}</b>` : ""}</p></div>` : ""}
+    ${arr(d.questions_left).length ? `<div class="warn"><p class="eyebrow">Worth asking next time</p>${ul(d.questions_left)}</div>` : ""}
+    ${d.family_message ? `<p class="eyebrow">Update your family</p><div class="bubble">${esc(d.family_message)}</div>` : ""}
+    <div class="actions">
+      ${act(L.calendar, "cal", "📅 Add follow-up reminder")}
+      ${act(L.family, "wa", "💬 Send to family")}
+    </div>
+    <p class="sign" style="margin-top:22px">— Stuck Doctor <span>· only what you told me</span></p>
+  </article>`;
+  wireSpeak(joinSay(d.summary, arr(d.todo), meds.map((m) => `${m.name}: ${m.as_said}`), d.follow_up_text));
+}
+
+/* ---------- rehearse ---------- */
+let history = [], rehearsalCtx = null;
+function addMsg(text, who) {
+  const el = document.createElement("div");
+  el.className = "msg " + who; el.textContent = text;
+  $("#chat").appendChild(el); $("#chat").scrollTop = $("#chat").scrollHeight;
+  return el;
+}
+async function askMeera() {
+  const typing = addMsg("Meera is typing…", "them typing");
+  try {
+    const res = await client.predict("/rehearse", [JSON.stringify(history), rehearsalCtx.task, rehearsalCtx.lang]);
+    typing.remove();
+    const reply = (res.data[0] && res.data[0].reply) || "Sorry, the line is unclear. Could you repeat that?";
+    history.push({ role: "assistant", content: reply });
+    addMsg(reply, "them");
+  } catch {
+    typing.remove();
+    addMsg("📵 The practice line dropped. Check the AI is connected and try again.", "them");
+  }
+}
+function startRehearsal(d) {
+  if (!needClient()) return;
+  rehearsalCtx = { task: d.task, lang: lang("lang1") };
+  history = []; $("#chat").innerHTML = "";
+  openModal("#callModal"); askMeera();
+  setTimeout(() => $("#chatIn").focus(), 300);
+}
+$("#chatForm").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("#chatIn").value.trim();
+  if (!text || !client) return;
+  $("#chatIn").value = "";
+  history.push({ role: "user", content: text });
+  addMsg(text, "me"); askMeera();
+});
+
+/* ---------- submit handlers ---------- */
+async function run(btnId, lines, call, render, note = "") {
+  if (!needClient()) return;
+  const btn = $(btnId); btn.disabled = true;
+  stopSpeaking(); renderLoading(lines, note);
+  try { const res = await call(); render(res.data[0] || {}); }
+  catch { renderError("The AI didn't answer. The AI may be waking up. Wait a minute, then try again."); }
+  finally { btn.disabled = false; }
+}
+$("#pane-stuck").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const task = $("#task").value.trim();
+  if (!task) { $("#task").focus(); return; }
+  run("#goStuck", LOAD.stuck, () => client.predict("/prescribe",
+    [task, $("#reason").value, $("#when").value, lang("lang1"), $("#details").value, forWho(), $("#relation").value.trim(), $("#budget").value]), renderRx);
+});
+
+let chosenFile = null;
+const drop = $("#drop"), fileInput = $("#file");
+function setFile(f) {
+  if (!f) return;
+  if (!f.type.startsWith("image/")) { renderError("Please upload a photo (JPG or PNG). For a PDF, take a screenshot of the page."); return; }
+  if (f.size > 8 * 1024 * 1024) { renderError("That photo is over 8 MB. Try a smaller one."); return; }
+  chosenFile = f;
+  $("#dropInner").innerHTML = `<img src="${URL.createObjectURL(f)}" alt="Document preview"><span class="drop-name">${esc(f.name)} · tap to change</span>`;
+}
+drop.addEventListener("click", () => fileInput.click());
+drop.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } });
+fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
+["dragenter", "dragover"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", (e) => setFile(e.dataTransfer.files[0]));
+$("#pane-doc").addEventListener("submit", (e) => {
+  e.preventDefault();
+  if (!chosenFile) { drop.focus(); drop.classList.add("over"); setTimeout(() => drop.classList.remove("over"), 600); return; }
+  const dbl = $("#dbl").checked;
+  run("#goDoc", LOAD.doc, () => client.predict("/read_document", [handle_file(chosenFile), lang("lang2"), dbl ? "yes" : "no"]),
+    renderDoc, dbl ? "Double-checking takes a little longer. Worth it." : "");
+});
+
+$("#pane-visit").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const notes = $("#notes").value.trim();
+  if (!notes) { $("#notes").focus(); return; }
+  run("#goVisit", LOAD.visit, () => client.predict("/visit_summary", [notes, lang("lang3")]), renderVisit);
+});
+
+/* ---------- my medicines ---------- */
+const SLOTS = [["🌅 Morning", "08:00"], ["☀️ Afternoon", "14:00"], ["🌆 Evening", "18:00"], ["🌙 Night", "21:00"], ["🛏️ Bedtime", "22:00"]];
+$("#slotSeg").innerHTML = SLOTS.map(([l, t]) => `<label><input type="checkbox" value="${t}"><span>${l} · ${t}</span></label>`).join("");
+let meds = [];
+try { meds = JSON.parse(store.get("sd_meds") || "[]"); if (!Array.isArray(meds)) meds = []; } catch { meds = []; }
+const saveMeds = () => store.set("sd_meds", JSON.stringify(meds));
+const pad = (n) => String(n).padStart(2, "0");
+const IST_MS = 5.5 * 3600e3;
+function nextIST(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const now = Date.now(), ist = new Date(now + IST_MS);
+  let t = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate(), h, m) - IST_MS;
+  if (t <= now) t += 864e5;
+  return t;
+}
+const istStamp = (ms) => { const d = new Date(ms + IST_MS); return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00`; };
+const utcStamp = (ms) => { const d = new Date(ms); return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}00Z`; };
+const slotName = (t) => { const s = SLOTS.find((x) => x[1] === t); return s ? s[0].split(" ").slice(1).join(" ") : "Custom"; };
+const medTitle = (m) => "💊 " + m.name + (m.dose ? " · " + m.dose : "");
+const medDetails = (m) => [m.dose && `Dose: ${m.dose}`, m.food, m.notes, m.days ? `For ${m.days} days` : "",
+  "Take exactly as your doctor, pharmacist or the label says."].filter(Boolean).join("\n");
+const rrule = (m) => "RRULE:FREQ=DAILY" + (m.days ? ";COUNT=" + m.days : "");
+function gcal(m, t) {
+  const s = nextIST(t);
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + `&text=${encodeURIComponent(medTitle(m))}&details=${encodeURIComponent(medDetails(m))}`
+    + `&dates=${istStamp(s)}/${istStamp(s + 5 * 60e3)}&ctz=Asia/Kolkata&recur=${encodeURIComponent(rrule(m))}`;
+}
+function buildICS() {
+  const e = (s) => String(s).replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  const out = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Stuck Doctor//Medicines//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH"];
+  meds.forEach((m, i) => m.times.forEach((t, j) => {
+    const s = nextIST(t);
+    out.push("BEGIN:VEVENT", `UID:sd-${Date.now()}-${i}-${j}@stuckdoctor`, `DTSTAMP:${utcStamp(Date.now())}`,
+      `DTSTART:${utcStamp(s)}`, `DTEND:${utcStamp(s + 5 * 60e3)}`, rrule(m),
+      `SUMMARY:${e(medTitle(m))}`, `DESCRIPTION:${e(medDetails(m))}`,
+      "BEGIN:VALARM", "ACTION:DISPLAY", `DESCRIPTION:${e("Time for " + m.name)}`, "TRIGGER:-PT0M", "END:VALARM", "END:VEVENT");
+  }));
+  out.push("END:VCALENDAR");
+  return out.join("\r\n");
+}
+
+function renderMeds(note = "") {
+  clearInterval(loadTimer);
+  if (!meds.length) {
+    $("#result").innerHTML = `<div class="empty"><div class="rx">💊</div><h3>Your medicine schedule</h3><p>Add medicines or supplements by hand, or read them from a prescription photo. Then set every reminder in one tap.</p></div>`;
+    return;
+  }
+  const times = [...new Set(meds.flatMap((m) => m.times))].sort();
+  const at = (t) => meds.filter((m) => m.times.includes(t));
+  const scheduleText = times.map((t) => `${t}: ` + at(t).map((m) => m.name + (m.dose ? ` (${m.dose})` : "") + (m.food ? `, ${m.food}` : "")).join("; ")).join("\n");
+  $("#result").innerHTML = `
+  <article class="slip">
+    <div class="slip-head"><div class="rx">💊</div>
+      <div class="slip-meta"><span>My medicines</span><b>${meds.length} item${meds.length > 1 ? "s" : ""} · ${times.length} time${times.length > 1 ? "s" : ""} a day</b></div></div>
+    ${speakRow}
+    ${note ? `<div class="med-caution" style="margin-top:12px">${esc(note)}</div>` : ""}
+    <p class="eyebrow">Your day</p>
+    <div class="timeline">${times.map((t) => `<div class="slot"><div class="slot-time"><b>${esc(t)}</b><small>${esc(slotName(t))}</small></div>
+      <div class="slot-meds">${at(t).map((m) => `<span class="pillchip">${esc(m.name)}${m.dose ? ` · ${esc(m.dose)}` : ""}</span>`).join("")}</div></div>`).join("")}</div>
+    <div class="actions">
+      <button class="act cal" id="icsBtn">📥 Add ALL reminders to my phone</button>
+      ${act("https://wa.me/?text=" + encodeURIComponent("My medicine schedule 💊\n" + scheduleText), "wa", "💬 Send schedule to family")}
+    </div>
+    <p class="lab-note">The download works with Google Calendar, iPhone and most phone calendar apps: open the file and tap <b>Add</b>. Or tap a single ⏰ time below.</p>
+    <p class="eyebrow">Each medicine</p>
+    <div class="meds">${meds.map((m, i) => `<div class="med">
+      <div class="med-top"><b>${esc(m.name)}</b><span>${m.days ? `<span class="chip normal">${esc(m.days)} days</span>` : `<span class="chip unknown">Every day</span>`}
+        ${m.from === "prescription" ? ` <span class="chip low">From photo · check it</span>` : ""}</span></div>
+      <p>${[m.dose, m.food, m.notes].filter(Boolean).map(esc).join(" · ") || "&nbsp;"}</p>
+      <div class="med-times">${m.times.map((t) => `<a class="time-chip" href="${esc(gcal(m, t))}" target="_blank" rel="noopener">⏰ ${esc(t)}</a>`).join("")}
+        <button type="button" class="del" data-i="${i}">🗑 Remove</button></div>
+    </div>`).join("")}</div>
+    <div class="warn"><p class="eyebrow">Important</p><ul>
+      <li>Stuck Doctor only reminds you. Take medicines and supplements exactly as your doctor, pharmacist or the label says.</li>
+      <li>Before starting a new supplement, ask your doctor or pharmacist whether it's safe with your other medicines.</li>
+      <li>Your list is saved only in this browser, on this device.</li></ul></div>
+  </article>`;
+  $("#icsBtn").addEventListener("click", () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([buildICS()], { type: "text/calendar" }));
+    a.download = "my-medicine-reminders.ics";
+    document.body.appendChild(a); a.click(); a.remove();
+  });
+  document.querySelectorAll(".del").forEach((b) => b.addEventListener("click", () => { meds.splice(+b.dataset.i, 1); saveMeds(); renderMeds(); }));
+  wireSpeak(joinSay("Your medicine schedule", times.map((t) => `At ${t}: ` + at(t).map((m) => m.name + (m.dose ? ", " + m.dose : "")).join(" and "))));
+}
+
+$("#pane-meds").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const name = $("#mName").value.trim();
+  if (!name) { $("#mName").focus(); return; }
+  const times = [...document.querySelectorAll("#slotSeg input:checked")].map((i) => i.value);
+  if ($("#mTime").value) times.push($("#mTime").value);
+  if (!times.length) { $("#medMsg").textContent = "Pick at least one time to take it."; return; }
+  const days = parseInt($("#mDays").value, 10);
+  meds.push({ name, dose: $("#mDose").value.trim(), times: [...new Set(times)].sort(),
+    days: days > 0 && days <= 365 ? days : null, food: $("#mFood").value === "Any time" ? "" : $("#mFood").value,
+    notes: $("#mNotes").value.trim(), from: "manual" });
+  saveMeds(); e.target.reset();
+  $("#medMsg").textContent = `Added ${name} ✓  Add another, or set your reminders →`;
+  renderMeds();
+});
+
+$("#medPhotoBtn").addEventListener("click", () => $("#medFile").click());
+$("#medFile").addEventListener("change", async () => {
+  const f = $("#medFile").files[0];
+  if (!f) return;
+  if (!f.type.startsWith("image/")) { renderError("Please upload a photo (JPG or PNG)."); return; }
+  if (!needClient()) return;
+  stopSpeaking();
+  renderLoading(["Reading your prescription…", "Finding each medicine…", "Double-checking doses and times…", "Building your schedule…"], "Double-checking takes a little longer. Worth it.");
+  try {
+    const res = await client.predict("/read_document", [handle_file(f), "Auto", "yes"]);
+    const d = res.data[0] || {};
+    if (d.error) return renderError(d.error);
+    const found = arr(d.medicines).filter((m) => m && m.name);
+    if (!found.length) return renderError("I couldn't find medicines on that photo. Try a clearer photo, or add them by hand.");
+    let noTime = 0;
+    found.forEach((m) => {
+      const times = arr(m.times).map((t) => String(t).trim()).filter((t) => /^\d{1,2}:\d{2}$/.test(t)).map((t) => { const [h, mm] = t.split(":"); return pad(+h) + ":" + mm; });
+      if (!times.length) { noTime++; return; }
+      meds.push({ name: m.name, dose: m.as_written || "", times: [...new Set(times)].sort(), days: m.days || null, food: m.with_food || "", notes: "", from: "prescription" });
+    });
+    saveMeds();
+    renderMeds(`⚠️ Read from your prescription by AI${d.verified ? " and double-checked" : ""}. Check every medicine, dose and time against the paper and with your pharmacist before relying on these reminders.`
+      + (noTime ? ` ${noTime} medicine${noTime > 1 ? "s have" : " has"} no clear time written, so ${noTime > 1 ? "they weren't" : "it wasn't"} added. Ask your pharmacist, then add by hand.` : ""));
+  } catch {
+    renderError("The AI couldn't read the prescription. The AI may be waking up. Wait a minute, then try again.");
+  } finally { $("#medFile").value = ""; }
+});
+
+if ("speechSynthesis" in window) speechSynthesis.getVoices();
+renderEmpty("stuck");
+</script>
+</body>
+</html>
