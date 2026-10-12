@@ -143,8 +143,6 @@
   .hero h1 em { font-style: italic; color: var(--accent); }
   .hero .lede { font-size: 19px; color: var(--text-soft); max-width: 560px; margin: 22px 0 18px; }
   .oneliner { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--heading-accent); font-size: 18px; margin: 0 0 26px; max-width: 560px; }
-  .proof { margin: 14px 0 0; font-weight: 600; color: var(--ok); font-size: 14px; }
-  .proof[hidden] { display: none; }
   .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
   .trust { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 14px; }
   .trust span::before { content: '✓'; color: var(--accent); font-weight: 700; margin-right: 6px; }
@@ -462,7 +460,6 @@
         <button type="button" class="chip-btn" data-ex="1">🦴 Back pain for months</button>
         <button type="button" class="chip-btn" data-ex="2">👵 My mother won't go for a check-up</button>
       </div>
-      <p class="proof" id="proof" hidden></p>
       <div class="trust"><span>Not medical advice</span><span>Voice &amp; read-aloud</span><span>Free-care options</span><span>Open source</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -828,9 +825,6 @@ const QUICK = [
   { task: "Back pain that has been there for months", reason: "Worried about cost or time", who: "Me", relation: "" },
   { task: "My mother has had knee pain for months but refuses to see a doctor", reason: "Scared of bad news", who: "Someone I care about", relation: "my mother" },
 ];
-/* After you have tested with real people, write your real number here, for example:
-   "5 testers, 4 took their first step." It appears on the home page. Leave it empty until you have counted. */
-const PROOF = "";
 
 /* Emergency words (English, Hinglish, Hindi, Bengali). Keep in sync with backend/app.py */
 const EMERGENCY = {
@@ -1588,7 +1582,6 @@ $("#medFile").addEventListener("change", async () => {
 if ("speechSynthesis" in window) speechSynthesis.getVoices();
 renderEmpty("stuck");
 renderWelcome();
-if (PROOF) { const p = $("#proof"); p.textContent = PROOF; p.hidden = false; }
 
 /* offline: the page and SOS keep working; tell people clearly what still works */
 const syncOnline = () => { $("#offlineBar").hidden = navigator.onLine; };
