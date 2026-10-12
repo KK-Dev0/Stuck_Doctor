@@ -51,6 +51,36 @@ REQUIRED = {
 }
 TIMES = ["In 1 hour", "Tonight (7 PM)", "Tomorrow morning (10 AM)", "This Saturday (11 AM)"]
 
+# ---------- emergency words (checked in Python, never left to the AI) ----------
+# English, Hinglish, Hindi and Bengali. Keep this list in sync with EMERGENCY in index.html.
+_EMERGENCY_MEDICAL = [
+    r"chest (pain|tight|pressure)|pain in (my |the )?chest|heart attack|cardiac arrest",
+    r"(can['’]?t|cannot|unable to|not able to) breathe|trouble breathing|difficulty (in )?breathing|short(ness)? of breath|breathless|gasping",
+    r"heavy bleeding|bleeding (a lot|heavily|badly|(that )?won['’]?t stop|(that )?will not stop)|vomit(ing)? blood|cough(ing)? (up )?blood|blood in (my )?(vomit|stool)",
+    r"faint(ed|ing)|passed out|unconscious|unresponsive|seizure|convulsion",
+    r"stroke|face (is )?droop|slurred speech|(one side|half) of (my |the )?(body|face) (is )?(weak|numb)",
+    r"overdose|poison(ed|ing)?|swallowed (pills|poison|acid|phenyl)|snake ?bite|anaphyla|throat (is )?(closing|swelling)|severe burn|head injury|road accident",
+    r"(seene|chhati|chaati|sine) (mein|me) (dard|jakdan|bhaari)|dil ka daura|saans (nahi|lene mein|phool)|sans (nahi|lene)|behosh|bahut (zyada )?khoon|khoon (ki )?ulti|lakwa|zeher|jahar|saanp ne kaat",
+    r"(सीने|छाती)\s*में\s*(दर्द|जकड़न)|दिल का दौरा|हार्ट अटैक|सा[ंँ]स\s*(नहीं|लेने में|फूल)|बेहोश|बहुत\s*(ज़्यादा\s*|ज्यादा\s*)?खून|खून की उल्टी|लकवा|जहर|ज़हर|ज़हर|साँप ने काट",
+    r"বুকে\s*(ব্যথা|চাপ)|বুক\s*ব্যথা|হার্ট\s*অ্যাটাক|শ্বাস\s*(নিতে|কষ্ট)|শ্বাসকষ্ট|অজ্ঞান|প্রচুর\s*রক্ত|রক্তক্ষরণ|রক্তবমি|স্ট্রোক|বিষ\s*খ|সাপে\s*কাট",
+    r"(buke|buk) ?(byatha|chap)|shash ?(nite|kosto)|shaskosto|ojnan|onek rokto|saap(e)? kat",
+]
+_EMERGENCY_MIND = [
+    r"suicid|kill (my ?self|me)|want to die|wanna die|end (my|this) life|no reason to live|hurt (my ?self)|self[- ]harm",
+    r"aatm ?hatya|marna chahta|marna chahti|jeena nahi|आत्महत्या|मरना चाहत|जीना नहीं|আত্মহত্যা|মরে যেত|বাঁচতে চাই না|atmohotya|morte chai",
+]
+EMERGENCY_MEDICAL = re.compile("|".join(_EMERGENCY_MEDICAL), re.I)
+EMERGENCY_MIND = re.compile("|".join(_EMERGENCY_MIND), re.I)
+
+def detect_emergency(text):
+    """Returns 'mind', 'medical' or '' (nothing found)."""
+    text = text or ""
+    if EMERGENCY_MIND.search(text):
+        return "mind"
+    if EMERGENCY_MEDICAL.search(text):
+        return "medical"
+    return ""
+
 def ask_json(system, user_msg, kind):
     """Ask Gemma for JSON. If the answer is broken or missing keys, tell it and retry once."""
     system = system + "\nReply with ONE valid JSON object only. No markdown, no extra text."
@@ -177,16 +207,21 @@ Do not mention insurance unless the user does."""
 def prescribe(task, reason, when, language, details, for_whom, relation, budget):
     ensure_ollama()
     task = (task or "").strip() or "seeing a doctor"
+    # safety net: emergency words are checked here too, in case the website's own check was skipped
+    em = detect_emergency(f"{task} {details or ''}")
     helping = str(for_whom or "").lower().startswith("someone")
     who_line = f"I'm asking for my {relation or 'family member'}." if helping else "I'm asking for myself."
     try:
         d = ask_json(prescribe_prompt(language, helping, relation, budget), {'role': 'user', 'content':
             f"{who_line}\nWhat is being put off: {task}\nWhy stuck: {reason}\nBudget: {budget}\nAnything else: {details}"}, "prescribe")
     except json.JSONDecodeError:
-        return {"error": "Stuck Doctor got confused. Please try again."}
+        return {"emergency": em} if em else {"error": "Stuck Doctor got confused. Please try again."}
     except Exception:
-        return {"error": "The AI is busy right now. Please try again in a minute."}
+        return {"emergency": em} if em else {"error": "The AI is busy right now. Please try again in a minute."}
 
+    if em:
+        d["urgent"] = True      # emergency words always mean urgent, whatever the AI said
+        when = "In 1 hour"
     guided = when not in TIMES
     chosen = when
     if guided:
@@ -267,7 +302,7 @@ def med_reminders(med):
     med["reminders"] = links
     return med
 
-def read_document(image_path, language, double_check):
+def _read_document(image_path, language, double_check):
     ensure_ollama()
     if not image_path:
         return {"error": "Please upload a photo of the document."}
@@ -296,6 +331,12 @@ def read_document(image_path, language, double_check):
         except Exception:
             pass
 
+    # how much to trust the reading: shown on the website as a plain confidence note
+    if d["verified"]:
+        d["confidence"] = "checked_fixed" if d["changes"] else "checked_clean"
+    else:
+        d["confidence"] = "single"
+
     for v in values:
         v["status"] = status_of(v)
     d["values"] = values
@@ -312,6 +353,17 @@ def read_document(image_path, language, double_check):
         "maps": "https://www.google.com/maps/search/?api=1&query=" + quote(clinic) if clinic else "",
     }
     return d
+
+def read_document(image_path, language, double_check):
+    try:
+        return _read_document(image_path, language, double_check)
+    finally:
+        # privacy: the photo is only needed while the AI reads it, so delete it right away
+        try:
+            if image_path and os.path.isfile(image_path):
+                os.remove(image_path)
+        except OSError:
+            pass
 
 # ==================== 3. AFTER MY VISIT ====================
 def visit_summary(notes, language):
