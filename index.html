@@ -10,11 +10,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;600&family=Noto+Sans+Devanagari:wght@400;600&display=swap" rel="stylesheet">
 <script>
   (function () {
-    var t = null, big = null;
-    try { t = localStorage.getItem("sd_theme"); big = localStorage.getItem("sd_big"); } catch (e) {}
+    var t = null, big = null, hc = null;
+    try { t = localStorage.getItem("sd_theme"); big = localStorage.getItem("sd_big"); hc = localStorage.getItem("sd_hc"); } catch (e) {}
     if (t !== "light" && t !== "dark") t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     document.documentElement.setAttribute("data-theme", t);
     if (big === "1") document.documentElement.classList.add("big");
+    if (hc === "1") document.documentElement.classList.add("hc");
   })();
 </script>
 <style>
@@ -48,6 +49,9 @@
     --ok: #6ee7a0; --ok-bg: #173325; --hi: #ff9c8d; --hi-bg: #3a1c18; --lo: #ffd27a; --lo-bg: #33280f; --na: #8b9a96; --na-bg: #222e2c;
     --footer: #090f0e;
   }
+  /* high contrast (the ◐ button) */
+  html.hc { --bg: #ffffff; --surface: #ffffff; --surface-2: #f0f0f0; --field: #ffffff; --text: #000000; --text-soft: #000000; --muted: #1f1f1f; --line: #000000; --dash: #000000; --brand: #00443f; --accent: #00443f; --heading-accent: #00302c; --clay: #9a2f0a; --clay-dark: #6f2007; --ok: #0b5a27; --hi: #8f1d0e; --lo: #6b3f00; }
+  html.hc[data-theme="dark"] { --bg: #000000; --surface: #000000; --surface-2: #141414; --field: #000000; --text: #ffffff; --text-soft: #ffffff; --muted: #e6e6e6; --line: #ffffff; --dash: #ffffff; --brand: #00b3a4; --on-brand: #000000; --accent: #5fe3d3; --heading-accent: #b6fff6; --clay: #c2410c; --clay-dark: #9a3412; --ok: #7bf0ac; --hi: #ffb1a5; --lo: #ffe08f; }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
   html.big { zoom: 1.15; }
@@ -57,10 +61,17 @@
     -webkit-font-smoothing: antialiased; transition: background .25s, color .25s;
   }
   a { color: inherit; }
+  :focus-visible { outline: 3px solid var(--clay); outline-offset: 2px; }
+  .skip { position: absolute; left: -999px; top: 8px; background: var(--brand); color: var(--on-brand); padding: 10px 16px; border-radius: 10px; z-index: 200; text-decoration: none; font-weight: 600; }
+  .skip:focus { left: 8px; }
   .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
   h1, h2, h3 { font-family: 'Fraunces', 'Noto Sans Devanagari', 'Noto Sans Bengali', Georgia, serif; font-weight: 600; letter-spacing: -.015em; line-height: 1.12; margin: 0; }
   .eyebrow { text-transform: uppercase; letter-spacing: .12em; font-size: 12px; font-weight: 600; color: var(--accent); margin: 0 0 10px; }
   .muted { color: var(--muted); }
+
+  /* offline bar */
+  .offline { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; background: var(--warn-bg); color: var(--warn-text); border-bottom: 1px solid var(--warn-line); padding: 10px 16px; font-size: 14px; font-weight: 500; text-align: center; }
+  .offline[hidden] { display: none; }
 
   /* nav */
   .nav { position: sticky; top: 0; z-index: 50; background: var(--nav); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .2s; }
@@ -73,6 +84,7 @@
   .nav-links a:hover { color: var(--accent); }
   .nav-right { display: flex; align-items: center; gap: 8px; }
   .pill-btn { display: flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 8px 14px; font: 500 14px 'Inter', sans-serif; color: var(--text); cursor: pointer; }
+  .pill-btn[aria-pressed="true"] { background: var(--brand); color: var(--on-brand); border-color: var(--brand); }
   .icon-btn { width: 40px; height: 40px; padding: 0; justify-content: center; font-size: 17px; font-weight: 700; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: #c9b9a0; }
   .dot.on { background: #16a34a; box-shadow: 0 0 0 4px rgba(22, 163, 74, .15); }
@@ -116,12 +128,23 @@
   .check { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; color: var(--text-soft); font-size: 14px; margin: 0 0 18px; cursor: pointer; }
   .check input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--brand); }
 
+  /* quick example chips */
+  .quick { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 22px; }
+  .quick > span { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .chip-btn { border: 1.5px solid var(--line); background: var(--surface); color: var(--text-soft); border-radius: 999px; padding: 8px 14px; font: 500 14px 'Inter', 'Noto Sans Devanagari', 'Noto Sans Bengali', sans-serif; cursor: pointer; transition: border-color .15s, color .15s, transform .15s; }
+  .chip-btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .quick-form { margin: 0 0 20px; }
+  .quick-form .quick { margin-top: 0; }
+
   /* hero */
   .hero { padding: 72px 0 88px; }
   .hero .wrap { display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; }
   .hero h1 { font-size: clamp(40px, 5.6vw, 68px); }
   .hero h1 em { font-style: italic; color: var(--accent); }
-  .hero .lede { font-size: 19px; color: var(--text-soft); max-width: 560px; margin: 22px 0 32px; }
+  .hero .lede { font-size: 19px; color: var(--text-soft); max-width: 560px; margin: 22px 0 18px; }
+  .oneliner { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--heading-accent); font-size: 18px; margin: 0 0 26px; max-width: 560px; }
+  .proof { margin: 14px 0 0; font-weight: 600; color: var(--ok); font-size: 14px; }
+  .proof[hidden] { display: none; }
   .cta-row { display: flex; gap: 14px; flex-wrap: wrap; }
   .trust { display: flex; gap: 18px; flex-wrap: wrap; margin-top: 30px; color: var(--muted); font-size: 14px; }
   .trust span::before { content: '✓'; color: var(--accent); font-weight: 700; margin-right: 6px; }
@@ -173,6 +196,7 @@
   .alt .card { background: var(--bg); }
   .pane { display: none; } .pane.active { display: block; }
   .form-note { font-size: 13px; color: var(--muted); margin: 14px 0 0; text-align: center; }
+  .form-note a { color: var(--accent); }
   .drop { border: 2px dashed var(--dash); border-radius: 18px; padding: 34px 20px; text-align: center; cursor: pointer; background: var(--field); transition: border-color .15s, background .15s; margin-top: 8px; font-weight: 400; color: var(--text); }
   .drop.over { border-color: var(--accent); background: var(--mint); }
   .drop .big-ico { font-size: 36px; }
@@ -181,16 +205,25 @@
   .drop img { max-width: 100%; max-height: 220px; border-radius: 12px; display: block; margin: 0 auto 10px; }
   .drop-name { font-size: 13px; color: var(--text-soft); }
 
+  /* welcome back + journey */
+  .welcome { display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; background: var(--mint); border: 1px solid var(--line); border-radius: 18px; padding: 16px 20px; margin-bottom: 22px; color: var(--text); }
+  .welcome-btns { display: flex; gap: 8px; }
+  .journey { margin-top: 22px; background: var(--surface-2); border-radius: 16px; padding: 4px 16px 6px; }
+  .journey .check { margin: 8px 0; }
+  .journey-msg { color: var(--ok); font-weight: 600; margin: 4px 0 10px; min-height: 22px; font-size: 14px; }
+
   #result { min-height: 520px; }
   .empty { border: 2px dashed var(--dash); border-radius: 22px; padding: 70px 30px; text-align: center; }
   .empty .rx { font-size: 64px; }
   .empty h3 { font-size: 26px; margin: 10px 0 8px; color: var(--heading-accent); }
   .empty p { color: var(--muted); margin: 0 0 22px; }
   .loading { text-align: center; padding: 110px 30px; }
+  .loading.wake { padding: 90px 30px; }
   .spinner { width: 54px; height: 54px; border-radius: 50%; border: 5px solid var(--mint); border-top-color: var(--accent); animation: spin .9s linear infinite; margin: 0 auto 22px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .loading p { font-family: 'Fraunces', serif; font-size: 22px; color: var(--heading-accent); margin: 0; }
   .loading small { display: block; color: var(--muted); margin-top: 10px; }
+  .loading .btn { margin-top: 22px; }
 
   .slip { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 30px 32px; box-shadow: var(--shadow); animation: rise .45s ease; }
   .alt .slip { background: var(--bg); }
@@ -234,12 +267,21 @@
   .sign { text-align: right; color: var(--accent); font-weight: 600; margin: 0; }
   .sign span { color: var(--muted); font-weight: 400; font-size: 13px; }
   .example-tag { display: inline-block; background: var(--mint); color: var(--heading-accent); font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; margin-bottom: 12px; }
+  .fallback-note { background: var(--pill-bg); border: 1px solid var(--pill-line); color: var(--pill-text); border-radius: 12px; padding: 11px 14px; font-size: 14px; margin-bottom: 14px; }
   .error-box { background: var(--warn-bg); border: 1px solid var(--warn-line); color: var(--warn-text); border-radius: 22px; padding: 26px; }
   .error-box h3 { font-size: 22px; margin-bottom: 6px; }
   .error-box p { color: var(--text-soft); }
 
+  /* emergency screen */
+  .emerg { background: var(--surface); border: 2px solid var(--warn-line); border-radius: 22px; padding: 28px 30px; box-shadow: var(--shadow); animation: rise .35s ease; }
+  .emerg h3 { font-size: 28px; color: var(--warn-text); margin-bottom: 8px; }
+  .emerg > p { color: var(--text-soft); margin: 0 0 18px; font-size: 17px; }
+  .emerg .link-btn { background: none; border: none; color: var(--muted); font: 500 14px 'Inter', sans-serif; text-decoration: underline; cursor: pointer; padding: 14px 0 0; }
+
   .verified { display: inline-flex; align-items: center; gap: 6px; background: var(--ok-bg); color: var(--ok); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; margin-top: 14px; }
   .changes { font-size: 13px; color: var(--text-soft); margin: 8px 0 0; }
+  .confidence { font-size: 13px; font-weight: 600; margin: 8px 0 0; }
+  .confidence.ok { color: var(--ok); } .confidence.mid { color: var(--lo); } .confidence.low { color: var(--hi); }
   .lab-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
   .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; }
   .lab { width: 100%; border-collapse: collapse; font-size: 15px; }
@@ -290,6 +332,10 @@
   .emergency h3 { font-size: 24px; }
   .emergency p { margin: 4px 0 0; color: var(--on-brand-soft); }
   .emergency .btn { background: #fff; color: #0a4a44; }
+  .privacy { margin-top: 22px; }
+  .privacy h3 { font-size: 24px; margin-bottom: 12px; }
+  .privacy ul { margin: 0; padding-left: 20px; color: var(--text-soft); }
+  .privacy li { margin: 8px 0; }
 
   footer { background: var(--footer); color: #c9d3d0; padding: 56px 0 100px; }
   footer .wrap { display: flex; justify-content: space-between; gap: 30px; flex-wrap: wrap; }
@@ -317,6 +363,8 @@
   .sos-act .em { font-size: 28px; }
   .sos-act.red { background: #dc2626; } .sos-act.dark { background: #7f1d1d; } .sos-act.green { background: #15803d; } .sos-act.blue { background: #1d4ed8; } .sos-act.teal { background: #0f6b63; }
   .sos-msg { font-size: 13px; color: var(--muted); margin-top: 12px; }
+  .care-list { list-style: none; padding: 0; margin: 16px 0 0; color: var(--text-soft); font-size: 15px; }
+  .care-list li { padding: 10px 0; border-top: 1px solid var(--line); }
   .note-modal { width: min(760px, 100%); text-align: center; padding: 44px 34px; }
   .note-modal .eyebrow { margin-bottom: 18px; }
   .note-text { font-family: 'Fraunces', 'Noto Sans Devanagari', 'Noto Sans Bengali', serif; font-size: clamp(26px, 4vw, 38px); line-height: 1.4; color: var(--text); margin: 0 0 22px; }
@@ -352,17 +400,27 @@
     .sos { width: 58px; height: 58px; right: 16px; bottom: 16px; }
     .tab { padding: 10px 14px; font-size: 14px; }
   }
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
+  }
 </style>
 </head>
 <body>
+<a class="skip" href="#top">Skip to main content</a>
+
+<div class="offline" id="offlineBar" role="status" hidden>
+  <span>📴 You're offline. SOS and the care card still work. The AI needs internet.</span>
+  <button type="button" class="chip-btn" id="offlineCard">Open care card</button>
+</div>
 
 <header class="nav" id="nav">
   <div class="wrap">
     <a class="logo" href="#top">
-      <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>
+      <span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>
       Stuck Doctor
     </a>
-    <nav class="nav-links">
+    <nav class="nav-links" aria-label="Main">
       <a href="#why">Why we wait</a>
       <a href="#features">Features</a>
       <a href="#app">Try it</a>
@@ -370,9 +428,10 @@
       <a href="#safety">Safety</a>
     </nav>
     <div class="nav-right">
-      <button class="pill-btn icon-btn" id="bigBtn" aria-label="Make text bigger" title="Bigger text">A+</button>
+      <button class="pill-btn icon-btn" id="bigBtn" aria-label="Make text bigger" aria-pressed="false" title="Bigger text">A+</button>
+      <button class="pill-btn icon-btn" id="hcBtn" aria-label="High contrast" aria-pressed="false" title="High contrast">◐</button>
       <button class="pill-btn icon-btn" id="themeBtn" aria-label="Switch theme" title="Light / dark">🌙</button>
-      <button class="pill-btn" id="connBtn" aria-expanded="false" aria-controls="connPanel"><span class="dot" id="connDot"></span><span class="lbl" id="connLabel">Not connected</span></button>
+      <button class="pill-btn" id="connBtn" aria-expanded="false" aria-controls="connPanel"><span class="dot" id="connDot" aria-hidden="true"></span><span class="lbl" id="connLabel">Starting up…</span></button>
     </div>
   </div>
   <div class="conn-panel" id="connPanel">
@@ -382,7 +441,7 @@
       <input type="url" id="connUrl" placeholder="https://xxxx.gradio.live" aria-label="Backend link">
       <button class="btn btn-primary btn-small" id="connGo">Connect</button>
     </div>
-    <div class="conn-msg" id="connMsg"></div>
+    <div class="conn-msg" id="connMsg" role="status"></div>
   </div>
 </header>
 
@@ -393,10 +452,17 @@
       <span class="badge">🎃 Built at <b>Hacktoberfest 2026</b> · Powered by Gemma</span>
       <h1>The hardest part of seeing a doctor is <em>starting.</em></h1>
       <p class="lede">Speak or type in English, Hindi or Bengali. Stuck Doctor figures out <i>why</i> you keep putting it off, gives you one tiny step, finds free care if money is tight, decodes your reports, and has your back in an emergency.</p>
+      <p class="oneliner">I built this for the 5th week someone says “I'll go next week.”</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="#app" data-tab="stuck">Get unstuck →</a>
         <a class="btn btn-ghost" href="#app" data-tab="doc">Explain my report</a>
       </div>
+      <div class="quick"><span>Try it in one tap:</span>
+        <button type="button" class="chip-btn" data-ex="0">🦻 Ear ache, 2 weeks</button>
+        <button type="button" class="chip-btn" data-ex="1">🦴 Back pain for months</button>
+        <button type="button" class="chip-btn" data-ex="2">👵 My mother won't go for a check-up</button>
+      </div>
+      <p class="proof" id="proof" hidden></p>
       <div class="trust"><span>Not medical advice</span><span>Voice &amp; read-aloud</span><span>Free-care options</span><span>Open source</span></div>
     </div>
     <div class="hero-art" aria-hidden="true">
@@ -442,7 +508,7 @@
       <div class="feature"><div class="ico">📝</div><h3>After-the-visit notes</h3><p>Say what the doctor told you. Get a clean summary, a to-do list, a follow-up reminder and an update for family.</p><span class="tag">Closes the loop</span></div>
       <div class="feature"><div class="ico">🗒️</div><h3>Show-the-doctor card</h3><p>Too awkward to say it out loud? A full-screen note in your words. Just turn your phone around.</p><span class="tag">For the shy</span></div>
       <div class="feature"><div class="ico">💰</div><h3>Free-care finder</h3><p>Tight budget? It points you to government hospitals, free online consults and cheaper generic medicines.</p><span class="tag">For every pocket</span></div>
-      <div class="feature"><div class="ico">🚑</div><h3>SOS button</h3><p>Always one tap away: ambulance (108), emergency (112), health helpline (104), live location on WhatsApp, nearest hospital.</p><span class="tag">Always on</span></div>
+      <div class="feature"><div class="ico">🚑</div><h3>SOS button</h3><p>Always one tap away: ambulance (108), emergency (112), health helpline (104), live location on WhatsApp, nearest hospital. Works offline too.</p><span class="tag">Always on</span></div>
     </div>
   </div>
 </section>
@@ -453,6 +519,7 @@
       <p class="eyebrow">Try it</p>
       <h2>Let's get you unstuck.</h2>
     </div>
+    <div id="welcome"></div>
     <div class="tabs" role="tablist">
       <button class="tab active" role="tab" data-pane="stuck" aria-selected="true">🩺 I'm stuck</button>
       <button class="tab" role="tab" data-pane="doc" aria-selected="false">🧪 Report / prescription</button>
@@ -464,6 +531,11 @@
       <div class="card">
         <!-- STUCK -->
         <form class="pane active" id="pane-stuck">
+          <div class="quick-form"><div class="quick"><span>Not sure what to write? Tap one:</span>
+            <button type="button" class="chip-btn" data-ex="0">Ear ache, 2 weeks</button>
+            <button type="button" class="chip-btn" data-ex="1">Back pain for months</button>
+            <button type="button" class="chip-btn" data-ex="2">My mother won't go</button>
+          </div></div>
           <div class="field">Who is this for?
             <div class="seg" id="forSeg">
               <label><input type="radio" name="forwho" value="Me" checked><span>🙋 Me</span></label>
@@ -526,6 +598,7 @@
           </div>
           <button class="btn btn-primary" style="width:100%" type="submit" id="goDoc">Explain it 🔍</button>
           <p class="form-note">Values are compared with the range printed on your report. Only your doctor can say what they mean for you.</p>
+          <p class="form-note">🔒 Your photo is sent to Google's Gemini API to be read, and deleted from our server right after. We never keep it. <a href="#privacy">Privacy details</a></p>
         </form>
 
         <!-- VISIT -->
@@ -574,7 +647,7 @@
         </form>
       </div>
 
-      <div id="result"></div>
+      <div id="result" aria-live="polite"></div>
     </div>
   </div>
 </section>
@@ -604,7 +677,7 @@
     </div>
     <div class="safety">
       <div class="card yes"><h3>Stuck Doctor will</h3>
-        <ul><li>Help you understand why you (or a loved one) are avoiding it</li><li>Give one tiny, doable first step</li><li>Explain report terms and show which values fall outside the printed range</li><li>Turn your doctor's written instructions into reminders</li><li>Flag warning signs that mean "go sooner"</li></ul>
+        <ul><li>Help you understand why you (or a loved one) are avoiding it</li><li>Give one tiny, doable first step</li><li>Explain report terms and show which values fall outside the printed range</li><li>Turn your doctor's written instructions into reminders</li><li>Flag warning signs that mean "go sooner"</li><li>Skip the AI and show 108 / 112 straight away if you describe an emergency</li></ul>
       </div>
       <div class="card no"><h3>Stuck Doctor won't</h3>
         <ul><li>Diagnose what's wrong with you</li><li>Suggest medicines, doses or home remedies of its own</li><li>Read X-ray, MRI or CT images (that needs a trained doctor)</li><li>Book appointments or know a doctor's availability</li><li>Replace a real doctor or pharmacist, ever</li></ul>
@@ -614,6 +687,16 @@
       <div><h3>Is it an emergency?</h3><p>Chest pain, trouble breathing, heavy bleeding, fainting or signs of stroke: don't wait. Get help now.</p></div>
       <button class="btn" id="sosInline">🚑 Open SOS</button>
     </div>
+    <div class="card privacy" id="privacy">
+      <h3>🔒 Your privacy, in plain words</h3>
+      <ul>
+        <li><b>Photos</b> are sent to Google's Gemini API so the AI can read them. Stuck Doctor deletes the file from its server as soon as your answer is ready and never stores it. Google's own terms for the Gemini API apply to what is sent.</li>
+        <li><b>Text you type</b> (what you're putting off, visit notes) goes to the same AI to write your answer. Stuck Doctor doesn't store it.</li>
+        <li><b>Your medicine list and journey</b> are saved only in your own browser, on your own device. We can't see them. Clearing site data erases them.</li>
+        <li><b>No account, no ads, no analytics.</b></li>
+        <li>Only upload what you're comfortable sending to an AI service. You can crop out your name and phone number first.</li>
+      </ul>
+    </div>
   </div>
 </section>
 </main>
@@ -621,7 +704,7 @@
 <footer>
   <div class="wrap">
     <div>
-      <a class="logo" href="#top"><span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>Stuck Doctor</a>
+      <a class="logo" href="#top"><span class="logo-mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M6 3v6a5 5 0 0 0 10 0V3"/><path d="M11 14v1.5a4.5 4.5 0 0 0 9 0V14"/><circle cx="20" cy="12" r="2" fill="#e0643a" stroke="#fff"/></svg></span>Stuck Doctor</a>
       <p>For everyone who's said "I'll go next week" for the fifth week in a row, and for everyone trying to get a loved one to go. Built in one day at Hacktoberfest 2026.</p>
     </div>
     <div>
@@ -630,7 +713,7 @@
     </div>
     <div>
       <h4>Project</h4>
-      <ul><li><a href="https://github.com/KK-Dev0/Stuck_Doctor" target="_blank" rel="noopener">GitHub repo</a></li><li><a href="#free">Free care</a></li><li><a href="#safety">Safety</a></li></ul>
+      <ul><li><a href="https://github.com/KK-Dev0/Stuck_Doctor" target="_blank" rel="noopener">GitHub repo</a></li><li><a href="#free">Free care</a></li><li><a href="#safety">Safety</a></li><li><a href="#privacy">Privacy</a></li><li><a href="#" id="careLink">Offline care card</a></li><li><a href="#" id="shareApp">Share with someone</a></li></ul>
     </div>
     <div class="fine">Not medical advice. In an emergency in India, call 108 (ambulance) or 112. Free-care schemes have their own eligibility rules; check the official sites. Code under the MIT License. Gemma is subject to Google's Gemma terms of use. AI assistance was used in building this project.</div>
   </div>
@@ -646,10 +729,32 @@
       <a class="sos-act red" href="tel:108"><span class="em">🚑</span><span>Call an ambulance<small>108 · free in most Indian states</small></span></a>
       <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112 · police, fire, ambulance</small></span></a>
       <a class="sos-act teal" href="tel:104"><span class="em">☎️</span><span>Health helpline<small>104 · health advice, available in many states</small></span></a>
+      <a class="sos-act teal" href="tel:14416"><span class="em">💬</span><span>Mental health support<small>Tele-MANAS 14416 · free, 24x7</small></span></a>
       <button class="sos-act green" id="shareLoc"><span class="em">📍</span><span>Share my location on WhatsApp<small>Sends a map link to someone you trust</small></span></button>
       <a class="sos-act blue" href="https://www.google.com/maps/search/?api=1&query=hospital%20emergency%20near%20me" target="_blank" rel="noopener"><span class="em">🏥</span><span>Find the nearest hospital<small>Opens Google Maps</small></span></a>
     </div>
     <p class="sos-msg" id="sosMsg"></p>
+  </div>
+</div>
+
+<div class="overlay" id="careModal" role="dialog" aria-modal="true" aria-labelledby="careTitle">
+  <div class="modal">
+    <button class="close" data-close aria-label="Close">✕</button>
+    <h3 id="careTitle">Offline care card</h3>
+    <p>This works without internet. Tap a number to call.</p>
+    <div class="sos-grid">
+      <a class="sos-act red" href="tel:108"><span class="em">🚑</span><span>Ambulance<small>108</small></span></a>
+      <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112</small></span></a>
+      <a class="sos-act teal" href="tel:104"><span class="em">☎️</span><span>Health helpline<small>104 · available in many states</small></span></a>
+      <a class="sos-act teal" href="tel:14416"><span class="em">💬</span><span>Mental health support<small>Tele-MANAS 14416 · free, 24x7</small></span></a>
+    </div>
+    <ul class="care-list">
+      <li><b>Government hospital or PHC:</b> OPD visits cost little or nothing. Carry a photo ID and any old reports.</li>
+      <li><b>eSanjeevani:</b> free online doctor from the Government of India. Needs internet: esanjeevani.mohfw.gov.in</li>
+      <li><b>Jan Aushadhi Kendra:</b> cheaper generic medicines. Ask your doctor if a generic is okay for you.</li>
+      <li><b>Ayushman Bharat (PM-JAY):</b> free hospital treatment for eligible families. Check eligibility at pmjay.gov.in when you're online.</li>
+    </ul>
+    <p class="sos-msg">Stuck Doctor is not medical advice. In an emergency, call 108 or 112 now.</p>
   </div>
 </div>
 
@@ -666,7 +771,7 @@
   <div class="modal">
     <button class="close" data-close aria-label="Close">✕</button>
     <div class="who"><div class="av">👩‍💼</div><div><b id="callTitle">Meera · City Care Clinic</b><small>AI receptionist · practice call</small></div></div>
-    <div class="chat" id="chat"></div>
+    <div class="chat" id="chat" aria-live="polite"></div>
     <form class="chat-row" id="chatForm">
       <input type="text" id="chatIn" placeholder="Type or speak what you'd say…" autocomplete="off" aria-label="Your reply">
       <button type="button" class="mic" data-for="chatIn" data-lang="lang1" aria-label="Speak">🎙️</button>
@@ -677,7 +782,9 @@
 </div>
 
 <script type="module">
-import { Client, handle_file } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
+/* The AI library loads from a CDN. If that fails (for example offline), the rest of the page, including SOS, still works. */
+let Client = null, handle_file = null;
+try { ({ Client, handle_file } = await import("https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js")); } catch {}
 
 /* ---------- data ---------- */
 const REASONS = [
@@ -715,6 +822,41 @@ const EXAMPLE = {
     calendar: ""
   }
 };
+/* One-tap examples (the chips in the hero and above the form) */
+const QUICK = [
+  { task: "Ear ache for 2 weeks", reason: "It's probably nothing", who: "Me", relation: "" },
+  { task: "Back pain that has been there for months", reason: "Worried about cost or time", who: "Me", relation: "" },
+  { task: "My mother has had knee pain for months but refuses to see a doctor", reason: "Scared of bad news", who: "Someone I care about", relation: "my mother" },
+];
+/* After you have tested with real people, write your real number here, for example:
+   "5 testers, 4 took their first step." It appears on the home page. Leave it empty until you have counted. */
+const PROOF = "";
+
+/* Emergency words (English, Hinglish, Hindi, Bengali). Keep in sync with backend/app.py */
+const EMERGENCY = {
+  medical: [
+    /chest (pain|tight|pressure)|pain in (my |the )?chest|heart attack|cardiac arrest/i,
+    /(can['’]?t|cannot|unable to|not able to) breathe|trouble breathing|difficulty (in )?breathing|short(ness)? of breath|breathless|gasping/i,
+    /heavy bleeding|bleeding (a lot|heavily|badly|(that )?won['’]?t stop|(that )?will not stop)|vomit(ing)? blood|cough(ing)? (up )?blood|blood in (my )?(vomit|stool)/i,
+    /faint(ed|ing)|passed out|unconscious|unresponsive|seizure|convulsion/i,
+    /stroke|face (is )?droop|slurred speech|(one side|half) of (my |the )?(body|face) (is )?(weak|numb)/i,
+    /overdose|poison(ed|ing)?|swallowed (pills|poison|acid|phenyl)|snake ?bite|anaphyla|throat (is )?(closing|swelling)|severe burn|head injury|road accident/i,
+    /(seene|chhati|chaati|sine) (mein|me) (dard|jakdan|bhaari)|dil ka daura|saans (nahi|lene mein|phool)|sans (nahi|lene)|behosh|bahut (zyada )?khoon|khoon (ki )?ulti|lakwa|zeher|jahar|saanp ne kaat/i,
+    /(सीने|छाती)\s*में\s*(दर्द|जकड़न)|दिल का दौरा|हार्ट अटैक|सा[ंँ]स\s*(नहीं|लेने में|फूल)|बेहोश|बहुत\s*(ज़्यादा\s*|ज्यादा\s*)?खून|खून की उल्टी|लकवा|जहर|ज़हर|ज\u093cहर|साँप ने काट/i,
+    /বুকে\s*(ব্যথা|চাপ)|বুক\s*ব্যথা|হার্ট\s*অ্যাটাক|শ্বাস\s*(নিতে|কষ্ট)|শ্বাসকষ্ট|অজ্ঞান|প্রচুর\s*রক্ত|রক্তক্ষরণ|রক্তবমি|স্ট্রোক|বিষ\s*খ|সাপে\s*কাট/i,
+    /(buke|buk) ?(byatha|chap)|shash ?(nite|kosto)|shaskosto|ojnan|onek rokto|saap(e)? kat/i,
+  ],
+  mind: [
+    /suicid|kill (my ?self|me)|want to die|wanna die|end (my|this) life|no reason to live|hurt (my ?self)|self[- ]harm/i,
+    /aatm ?hatya|marna chahta|marna chahti|jeena nahi|आत्महत्या|मरना चाहत|जीना नहीं|আত্মহত্যা|মরে যেত|বাঁচতে চাই না|atmohotya|morte chai/i,
+  ],
+};
+const detectEmergency = (text) => {
+  const t = String(text || "");
+  if (EMERGENCY.mind.some((r) => r.test(t))) return "mind";
+  if (EMERGENCY.medical.some((r) => r.test(t))) return "medical";
+  return "";
+};
 
 /* ---------- helpers ---------- */
 const $ = (s) => document.querySelector(s);
@@ -725,8 +867,9 @@ const safeUrl = (u) => typeof u === "string" && /^(https:|tel:)/.test(u) ? u : "
 const act = (url, cls, label) => safeUrl(url) ? `<a class="act ${cls}" href="${esc(url)}" target="_blank" rel="noopener">${esc(label)}</a>` : "";
 const store = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
 const lang = (name) => document.querySelector(`input[name=${name}]:checked`).value;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-/* ---------- theme + text size ---------- */
+/* ---------- theme, text size, contrast ---------- */
 function applyTheme(t) {
   document.documentElement.setAttribute("data-theme", t);
   $("#themeBtn").textContent = t === "dark" ? "☀️" : "🌙";
@@ -737,9 +880,16 @@ $("#themeBtn").addEventListener("click", () => {
   const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
   applyTheme(next); store.set("sd_theme", next);
 });
+const setPressed = (id, on) => $(id).setAttribute("aria-pressed", on ? "true" : "false");
+setPressed("#bigBtn", document.documentElement.classList.contains("big"));
+setPressed("#hcBtn", document.documentElement.classList.contains("hc"));
 $("#bigBtn").addEventListener("click", () => {
   const on = document.documentElement.classList.toggle("big");
-  store.set("sd_big", on ? "1" : "0");
+  store.set("sd_big", on ? "1" : "0"); setPressed("#bigBtn", on);
+});
+$("#hcBtn").addEventListener("click", () => {
+  const on = document.documentElement.classList.toggle("hc");
+  store.set("sd_hc", on ? "1" : "0"); setPressed("#hcBtn", on);
 });
 
 /* ---------- build UI ---------- */
@@ -777,7 +927,7 @@ addEventListener("scroll", () => $("#nav").classList.toggle("scrolled", scrollY 
 $("#connBtn").addEventListener("click", () => {
   const open = $("#connPanel").classList.toggle("open");
   $("#connBtn").setAttribute("aria-expanded", open);
-  if (open) $("#connUrl").focus();
+  if (open) { $("#connUrl").focus(); if (!client) startWake(); }
 });
 
 /* ---------- modals ---------- */
@@ -786,9 +936,19 @@ function closeModals() { document.querySelectorAll(".overlay").forEach((o) => o.
 document.querySelectorAll(".overlay").forEach((o) => o.addEventListener("click", (e) => { if (e.target === o || e.target.closest("[data-close]")) closeModals(); }));
 addEventListener("keydown", (e) => { if (e.key === "Escape") closeModals(); });
 
-/* ---------- SOS ---------- */
+/* ---------- SOS, care card, share ---------- */
 $("#sosBtn").addEventListener("click", () => openModal("#sosModal"));
 $("#sosInline").addEventListener("click", () => openModal("#sosModal"));
+$("#careLink").addEventListener("click", (e) => { e.preventDefault(); openModal("#careModal"); });
+$("#offlineCard").addEventListener("click", () => openModal("#careModal"));
+async function shareApp(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const url = location.origin + location.pathname;
+  const text = "Stuck Doctor helps you stop putting off the doctor. Free, and works in Hindi and Bengali too.";
+  if (navigator.share) { try { await navigator.share({ title: "Stuck Doctor", text, url }); return; } catch {} }
+  window.open("https://wa.me/?text=" + encodeURIComponent(text + " " + url), "_blank", "noopener");
+}
+$("#shareApp").addEventListener("click", shareApp);
 $("#shareLoc").addEventListener("click", () => {
   const msg = $("#sosMsg");
   if (!navigator.geolocation) { msg.textContent = "Your browser can't share location. Call 108 or 112 instead."; return; }
@@ -850,28 +1010,29 @@ function wireSpeak(text) {
 const speakRow = `<div class="speak-row"><button class="speak" id="speakBtn">🔊 Read aloud</button></div>`;
 const joinSay = (...parts) => parts.flat().filter(Boolean).map(String).join(". ");
 
-/* ---------- backend connection ---------- */
-let client = null;
+/* ---------- backend connection (wakes the free Render server by itself) ---------- */
+let client = null, waking = false;
 function setStatus(state, msg = "", ok = false) {
   $("#connDot").className = "dot " + (state === "on" ? "on" : state === "busy" ? "busy" : "");
-  $("#connLabel").textContent = state === "on" ? "AI connected" : state === "busy" ? "Connecting…" : "Not connected";
+  $("#connLabel").textContent = state === "on" ? "AI connected" : state === "busy" ? (waking ? "Waking up the AI…" : "Connecting…") : "AI resting";
   $("#connMsg").textContent = msg;
   $("#connMsg").className = "conn-msg " + (msg ? (ok ? "ok" : "err") : "");
 }
-async function connect(url) {
+async function connect(url, quiet = false) {
   url = (url || "").trim().replace(/\/+$/, "");
+  if (!Client) { if (!quiet) setStatus("off", "Couldn't load the AI library. Check your internet and refresh."); return false; }
   if (!/^https:\/\/.+/.test(url)) { setStatus("off", "Paste the full https://… back-end link."); return false; }
   if (/github\.io/.test(url)) { setStatus("off", "That's your website link. Paste the back-end link instead."); return false; }
   setStatus("busy");
   try {
-    client = await Client.connect(url);
+    client = await Promise.race([Client.connect(url), new Promise((_, rej) => setTimeout(() => rej(new Error("timeout")), 45000))]);
     store.set("sd_backend", url); $("#connUrl").value = url;
     setStatus("on", "Connected! You're ready to go.", true);
     setTimeout(() => $("#connPanel").classList.remove("open"), 900);
     return true;
   } catch (e) {
     client = null;
-    setStatus("off", "Couldn't reach the AI. It may be waking up after a rest: wait a minute and refresh the page.");
+    if (!quiet) setStatus("off", "Couldn't reach the AI yet. It may be waking up: tap the status button to try again.");
     return false;
   }
 }
@@ -880,14 +1041,36 @@ $("#connUrl").addEventListener("keydown", (e) => { if (e.key === "Enter") connec
 // 👇 Your always-on Render back end. Change this if Render gives you a different address.
 const DEFAULT_BACKEND = "https://stuck-doctor.onrender.com";
 const startUrl = new URLSearchParams(location.search).get("backend") || DEFAULT_BACKEND || store.get("sd_backend");
-if (startUrl) { $("#connUrl").value = startUrl; connect(startUrl); }
-function needClient() {
-  if (client) return true;
-  $("#connPanel").classList.add("open");
-  setStatus("off", "Connect the AI first: paste your gradio.live link.");
-  scrollTo({ top: 0, behavior: "smooth" });
-  return false;
+$("#connUrl").value = startUrl || "";
+let wakeP = null;
+function startWake() {
+  if (client) return Promise.resolve(true);
+  if (!Client || !startUrl) return Promise.resolve(false);
+  if (wakeP) return wakeP;
+  wakeP = (async () => {
+    waking = true;
+    const t0 = Date.now();
+    while (!client && Date.now() - t0 < 100000) {
+      if (await connect(startUrl, true)) break;
+      await sleep(4000);
+    }
+    waking = false;
+    if (!client) setStatus("off", "The AI is still resting. Tap the status button to try again in a minute.");
+    wakeP = null;
+    return !!client;
+  })();
+  return wakeP;
 }
+async function ensureClient() {
+  if (client) return true;
+  if (!startUrl || !Client) {
+    $("#connPanel").classList.add("open");
+    setStatus("off", Client ? "Paste your back-end link to connect the AI." : "Couldn't load the AI library. Check your internet and refresh.");
+    return false;
+  }
+  return startWake();
+}
+if (startUrl) startWake();
 
 /* ---------- shared render bits ---------- */
 function renderEmpty(tab = "stuck") {
@@ -902,7 +1085,7 @@ function renderEmpty(tab = "stuck") {
 let loadTimer;
 function renderLoading(lines, note = "") {
   let i = 0;
-  $("#result").innerHTML = `<div class="card loading"><div class="spinner"></div><p id="loadMsg">${lines[0]}</p>${note ? `<small>${esc(note)}</small>` : ""}</div>`;
+  $("#result").innerHTML = `<div class="card loading" role="status"><div class="spinner"></div><p id="loadMsg">${lines[0]}</p>${note ? `<small>${esc(note)}</small>` : ""}</div>`;
   clearInterval(loadTimer);
   loadTimer = setInterval(() => { const el = $("#loadMsg"); if (!el) return clearInterval(loadTimer); el.textContent = lines[++i % lines.length]; }, 2000);
 }
@@ -910,10 +1093,87 @@ function renderError(msg) {
   clearInterval(loadTimer);
   $("#result").innerHTML = `<div class="error-box"><h3>Hmm, that didn't work 😵</h3><p>${esc(msg)}</p></div>`;
 }
+function renderWaking(tab) {
+  clearInterval(loadTimer);
+  $("#result").innerHTML = `<div class="card loading wake" role="status"><div class="spinner"></div><p>Waking up the AI…</p>
+    <small>Free servers nap when nobody is using them. This takes about 30 seconds, and only the first time. Your request will go through by itself.</small>
+    ${tab === "stuck" ? `<button type="button" class="btn btn-ghost btn-small" id="peekBtn">👀 See a sample while you wait</button>` : ""}</div>`;
+  const p = $("#peekBtn");
+  if (p) p.addEventListener("click", () => {
+    runId++;
+    renderRx({ ...EXAMPLE, fallbackNote: "This is a sample while the AI wakes up. Tap Get my prescription again in a moment to get your own." });
+    $("#goStuck").disabled = false;
+  });
+}
+
+/* ---------- render: emergency (skips the AI) ---------- */
+function renderEmergency(kind, onContinue) {
+  clearInterval(loadTimer);
+  const mind = kind === "mind";
+  const talk = "https://wa.me/?text=" + encodeURIComponent("I'm having a really hard time right now and I need someone to talk to. Can you call me?");
+  $("#result").innerHTML = `
+  <article class="emerg" role="alert">
+    ${speakRow}
+    <h3>${mind ? "You're not alone. Please reach out right now." : "This could be an emergency. Please don't wait."}</h3>
+    <p>${mind
+      ? "What you wrote sounds really heavy. Talking to someone right now can help. Caring people are a free call away, at any hour."
+      : "What you wrote sounds serious. Stuck Doctor can't help with this safely. Please get medical help now instead of planning a visit."}</p>
+    <div class="sos-grid">
+      ${mind ? `
+      <a class="sos-act teal" href="tel:14416"><span class="em">💬</span><span>Tele-MANAS: free mental health support<small>14416 · 24x7</small></span></a>
+      <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112 · if you are in danger right now</small></span></a>
+      <a class="sos-act green" href="${talk}" target="_blank" rel="noopener"><span class="em">🤝</span><span>Message someone you trust<small>Opens WhatsApp</small></span></a>` : `
+      <a class="sos-act red" href="tel:108"><span class="em">🚑</span><span>Call an ambulance<small>108 · free in most Indian states</small></span></a>
+      <a class="sos-act dark" href="tel:112"><span class="em">🆘</span><span>Emergency helpline<small>112 · police, fire, ambulance</small></span></a>
+      <button type="button" class="sos-act blue" id="emergMore"><span class="em">📍</span><span>Share location, find nearest hospital<small>Opens more options</small></span></button>`}
+    </div>
+    ${onContinue ? `<button type="button" class="link-btn" id="emergContinue">This isn't an emergency, continue →</button>` : ""}
+  </article>`;
+  const more = $("#emergMore"); if (more) more.addEventListener("click", () => openModal("#sosModal"));
+  const c = $("#emergContinue"); if (c) c.addEventListener("click", onContinue);
+  wireSpeak(mind
+    ? "You are not alone. Please call Tele-MANAS on 14416 right now. It is free, and open all day and night. If you are in danger, call 112."
+    : "This could be an emergency. Please do not wait. Call 108 for an ambulance, or 112 for emergency help.");
+  $("#result").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/* ---------- journey (a gentle follow-up so the app doesn't end after one answer) ---------- */
+const JKEY = "sd_journey";
+const getJourney = () => { try { return JSON.parse(store.get(JKEY) || "null"); } catch { return null; } };
+const saveJourney = (j) => store.set(JKEY, JSON.stringify(j));
+const STEP_Q = (j) => [
+  `Did you do your 2-minute ${j.helping ? "move to help" : "first move"}?`,
+  j.helping ? "Did they agree to go, or did you book it?" : "Did you message or book the clinic?",
+  j.helping ? "Did they go to the visit?" : "Did you go to the visit?",
+];
+function wireRxExtras(d) {
+  const sb = $("#shareBtn"); if (sb) sb.addEventListener("click", shareApp);
+  const box = $("#journey"); if (!box) return;
+  const j = { task: d.task, helping: !!d.helping, rel: d.relation || "", started: Date.now(), steps: [false, false, false] };
+  saveJourney(j);
+  const msg = $("#journeyMsg");
+  const LINES = ["", "Step 1 done. That's the hardest one. 🎉", "Two steps down. You're nearly there.", "All three. You did the thing. 🏆"];
+  box.querySelectorAll("input").forEach((c) => c.addEventListener("change", () => {
+    j.steps[+c.dataset.step] = c.checked; saveJourney(j);
+    msg.textContent = LINES[j.steps.filter(Boolean).length] || "";
+  }));
+}
+function renderWelcome() {
+  const el = $("#welcome"); if (!el) return;
+  const j = getJourney();
+  const done = j && Array.isArray(j.steps) ? j.steps.filter(Boolean).length : 0;
+  if (!j || done >= 3) { el.innerHTML = ""; return; }
+  const next = j.steps.indexOf(false);
+  el.innerHTML = `<div class="welcome"><div><b>👋 Welcome back.</b> You were sorting out: <i>${esc(j.task)}</i> · ${done} of 3 steps done.<br>${esc(STEP_Q(j)[next])}</div>
+    <div class="welcome-btns"><button type="button" class="btn btn-primary btn-small" id="wbYes">Yes ✓</button><button type="button" class="btn btn-ghost btn-small" id="wbNo">Not yet</button></div></div>`;
+  $("#wbYes").addEventListener("click", () => { j.steps[next] = true; saveJourney(j); renderWelcome(); });
+  $("#wbNo").addEventListener("click", () => { showTab("stuck"); $("#task").value = j.task; $("#app").scrollIntoView({ behavior: "smooth" }); $("#task").focus(); });
+}
 
 /* ---------- render: prescription ---------- */
 function renderRx(d) {
   clearInterval(loadTimer);
+  if (d.emergency) return renderEmergency(d.emergency, null);
   if (d.error) return renderError(d.error);
   const L = d.links || {};
   const rel = d.relation || "loved one";
@@ -921,6 +1181,7 @@ function renderRx(d) {
   $("#result").innerHTML = `
   <article class="slip">
     ${d.example ? `<span class="example-tag">Example prescription</span>` : ""}
+    ${d.fallbackNote ? `<div class="fallback-note">${esc(d.fallbackNote)}</div>` : ""}
     <div class="slip-head"><div class="rx">℞</div>
       <div class="slip-meta"><span>${d.helping ? "For your " + esc(rel) : "Patient"}</span><b>${esc(d.task)}</b><span>${esc(d.date)}</span></div></div>
     ${speakRow}
@@ -940,6 +1201,7 @@ function renderRx(d) {
       <button class="act alt1" id="rehearseBtn">🎭 Rehearse the call</button>
       ${d.doctor_note ? `<button class="act alt3" id="noteBtn">🗒️ Show-the-doctor card</button>` : ""}
       ${act(L.buddy, "alt2", d.helping ? "🤝 Offer to go with them" : "🤝 Ask a friend to come")}
+      <button class="act wa" id="shareBtn">📤 Share Stuck Doctor</button>
     </div>
     <div class="two">
       <div><p class="eyebrow">Ask the doctor</p>${ul(d.questions)}</div>
@@ -947,9 +1209,15 @@ function renderRx(d) {
     </div>
     <p class="eyebrow">While you wait</p>${ul(d.while_you_wait)}
     <div class="warn"><p class="eyebrow">See a doctor sooner if</p>${ul(d.see_sooner_if)}</div>
+    ${d.example ? "" : `<div class="journey" id="journey"><p class="eyebrow">🧭 Your journey · tick as you go</p>
+      <label class="check"><input type="checkbox" data-step="0"><span>I did my 2-minute ${d.helping ? "move to help" : "first move"}</span></label>
+      <label class="check"><input type="checkbox" data-step="1"><span>${d.helping ? "They agreed to go, or we booked it" : "I messaged or booked the clinic"}</span></label>
+      <label class="check"><input type="checkbox" data-step="2"><span>${d.helping ? "They went to the visit" : "I went to the visit"}</span></label>
+      <p class="journey-msg" id="journeyMsg" aria-live="polite"></p></div>`}
     <p class="push">“${esc(d.push)}”</p>
     <p class="sign">— Stuck Doctor <span>· not medical advice</span></p>
   </article>`;
+  wireRxExtras(d);
   const us = $("#urgentSos"); if (us) us.addEventListener("click", (e) => { e.preventDefault(); openModal("#sosModal"); });
   const nb = $("#noteBtn"); if (nb) nb.addEventListener("click", () => { $("#noteText").textContent = d.doctor_note; openModal("#noteModal"); });
   $("#rehearseBtn").addEventListener("click", () => startRehearsal(d));
@@ -972,6 +1240,12 @@ function renderDoc(d) {
   const fact = (k, v) => v ? `<div class="fact"><small>${k}</small><b>${esc(v)}</b></div>` : "";
   const facts = fact("Clinic", d.clinic_name) + fact("Doctor", d.doctor_name) + fact("Phone", d.phone) + fact("Follow-up", d.follow_up);
   const changes = arr(d.changes);
+  const CONF = {
+    checked_clean: ["ok", "Confidence: higher. Both readings of your photo matched."],
+    checked_fixed: ["mid", "Confidence: medium. The second look fixed something, so check every number against the paper."],
+    single: ["low", "Confidence: lower. Your photo was read once only. Turn on “Double-check the numbers” and compare with the paper."],
+  }[d.confidence];
+  const confHtml = CONF && (values.length || meds.length) ? `<p class="confidence ${CONF[0]}">${CONF[1]}</p>` : "";
 
   const table = values.length ? `
     <p class="eyebrow">Your values</p>
@@ -1006,6 +1280,7 @@ function renderDoc(d) {
       <div class="slip-meta"><span>Document</span><b>${esc(d.doc_type)}</b></div></div>
     ${speakRow}
     ${d.verified ? `<span class="verified">✓ Double-checked against your photo</span>${changes.length ? `<p class="changes">Fixed on second check: ${changes.map(esc).join(" · ")}</p>` : ""}` : ""}
+    ${confHtml}
     ${d.is_scan ? `<div class="pill-time">🩻 This looks like a scan image (like an X-ray or MRI). Reading scans needs a trained doctor, and an AI guess could be dangerously wrong, so Stuck Doctor won't try. Please show it to a doctor. If you have the written report that came with it, upload that and I'll explain it.</div>` : ""}
     <p class="eyebrow">What it says</p><p class="diag" style="font-size:19px">${esc(d.summary)}</p>
     ${table}
@@ -1074,11 +1349,17 @@ async function askMeera() {
     addMsg("📵 The practice line dropped. Check the AI is connected and try again.", "them");
   }
 }
-function startRehearsal(d) {
-  if (!needClient()) return;
+async function startRehearsal(d) {
   rehearsalCtx = { task: d.task, lang: lang("lang1") };
   history = []; $("#chat").innerHTML = "";
-  openModal("#callModal"); askMeera();
+  openModal("#callModal");
+  if (!client) {
+    addMsg("📞 Connecting the call… the AI is waking up. This takes about 30 seconds.", "them typing");
+    const ok = await ensureClient();
+    $("#chat").innerHTML = "";
+    if (!ok) { addMsg("📵 The practice line is still asleep. Close this and try again in a minute.", "them"); return; }
+  }
+  askMeera();
   setTimeout(() => $("#chatIn").focus(), 300);
 }
 $("#chatForm").addEventListener("submit", (e) => {
@@ -1091,21 +1372,52 @@ $("#chatForm").addEventListener("submit", (e) => {
 });
 
 /* ---------- submit handlers ---------- */
-async function run(btnId, lines, call, render, note = "") {
-  if (!needClient()) return;
+let runId = 0;
+async function run(btnId, lines, call, render, note = "", tab = "stuck") {
   const btn = $(btnId); btn.disabled = true;
-  stopSpeaking(); renderLoading(lines, note);
-  try { const res = await call(); render(res.data[0] || {}); }
-  catch { renderError("The AI didn't answer. The AI may be waking up. Wait a minute, then try again."); }
-  finally { btn.disabled = false; }
+  const my = ++runId;
+  stopSpeaking();
+  try {
+    if (!client) {
+      renderWaking(tab);
+      const ok = await ensureClient();
+      if (my !== runId) return;
+      if (!ok) {
+        if (tab === "stuck") renderRx({ ...EXAMPLE, fallbackNote: "The AI is still waking up, so here is a sample result. Wait a minute, then tap Get my prescription again to get your own." });
+        else renderError("The AI is still waking up. Please wait a minute and try again.");
+        return;
+      }
+    }
+    renderLoading(lines, note);
+    const res = await call();
+    if (my !== runId) return;
+    render(res.data[0] || {});
+  } catch {
+    if (my === runId) renderError("The AI didn't answer. It may be waking up. Wait a minute, then try again.");
+  } finally { btn.disabled = false; }
 }
 $("#pane-stuck").addEventListener("submit", (e) => {
   e.preventDefault();
   const task = $("#task").value.trim();
   if (!task) { $("#task").focus(); return; }
-  run("#goStuck", LOAD.stuck, () => client.predict("/prescribe",
+  const go = () => run("#goStuck", LOAD.stuck, () => client.predict("/prescribe",
     [task, $("#reason").value, $("#when").value, lang("lang1"), $("#details").value, forWho(), $("#relation").value.trim(), $("#budget").value]), renderRx);
+  // emergency words skip the AI completely
+  const kind = detectEmergency(task + " " + $("#details").value);
+  if (kind) { stopSpeaking(); renderEmergency(kind, go); return; }
+  go();
 });
+
+/* one-tap example chips: fill the form and submit it */
+document.querySelectorAll("[data-ex]").forEach((b) => b.addEventListener("click", () => {
+  const q = QUICK[+b.dataset.ex];
+  showTab("stuck");
+  const radio = document.querySelector(`input[name=forwho][value="${q.who}"]`);
+  radio.checked = true; radio.dispatchEvent(new Event("change"));
+  $("#relation").value = q.relation; $("#task").value = q.task; $("#reason").value = q.reason;
+  $("#app").scrollIntoView({ behavior: "smooth" });
+  $("#pane-stuck").requestSubmit();
+}));
 
 let chosenFile = null;
 const drop = $("#drop"), fileInput = $("#file");
@@ -1127,14 +1439,14 @@ $("#pane-doc").addEventListener("submit", (e) => {
   if (!chosenFile) { drop.focus(); drop.classList.add("over"); setTimeout(() => drop.classList.remove("over"), 600); return; }
   const dbl = $("#dbl").checked;
   run("#goDoc", LOAD.doc, () => client.predict("/read_document", [handle_file(chosenFile), lang("lang2"), dbl ? "yes" : "no"]),
-    renderDoc, dbl ? "Double-checking takes a little longer. Worth it." : "");
+    renderDoc, dbl ? "Double-checking takes a little longer. Worth it." : "", "doc");
 });
 
 $("#pane-visit").addEventListener("submit", (e) => {
   e.preventDefault();
   const notes = $("#notes").value.trim();
   if (!notes) { $("#notes").focus(); return; }
-  run("#goVisit", LOAD.visit, () => client.predict("/visit_summary", [notes, lang("lang3")]), renderVisit);
+  run("#goVisit", LOAD.visit, () => client.predict("/visit_summary", [notes, lang("lang3")]), renderVisit, "", "visit");
 });
 
 /* ---------- my medicines ---------- */
@@ -1246,10 +1558,13 @@ $("#medFile").addEventListener("change", async () => {
   const f = $("#medFile").files[0];
   if (!f) return;
   if (!f.type.startsWith("image/")) { renderError("Please upload a photo (JPG or PNG)."); return; }
-  if (!needClient()) return;
   stopSpeaking();
-  renderLoading(["Reading your prescription…", "Finding each medicine…", "Double-checking doses and times…", "Building your schedule…"], "Double-checking takes a little longer. Worth it.");
   try {
+    if (!client) {
+      renderWaking("meds");
+      if (!(await ensureClient())) return renderError("The AI is still waking up. Please wait a minute and try again.");
+    }
+    renderLoading(["Reading your prescription…", "Finding each medicine…", "Double-checking doses and times…", "Building your schedule…"], "Double-checking takes a little longer. Worth it.");
     const res = await client.predict("/read_document", [handle_file(f), "Auto", "yes"]);
     const d = res.data[0] || {};
     if (d.error) return renderError(d.error);
@@ -1265,12 +1580,22 @@ $("#medFile").addEventListener("change", async () => {
     renderMeds(`⚠️ Read from your prescription by AI${d.verified ? " and double-checked" : ""}. Check every medicine, dose and time against the paper and with your pharmacist before relying on these reminders.`
       + (noTime ? ` ${noTime} medicine${noTime > 1 ? "s have" : " has"} no clear time written, so ${noTime > 1 ? "they weren't" : "it wasn't"} added. Ask your pharmacist, then add by hand.` : ""));
   } catch {
-    renderError("The AI couldn't read the prescription. The AI may be waking up. Wait a minute, then try again.");
+    renderError("The AI couldn't read the prescription. It may be waking up. Wait a minute, then try again.");
   } finally { $("#medFile").value = ""; }
 });
 
+/* ---------- start-up ---------- */
 if ("speechSynthesis" in window) speechSynthesis.getVoices();
 renderEmpty("stuck");
+renderWelcome();
+if (PROOF) { const p = $("#proof"); p.textContent = PROOF; p.hidden = false; }
+
+/* offline: the page and SOS keep working; tell people clearly what still works */
+const syncOnline = () => { $("#offlineBar").hidden = navigator.onLine; };
+addEventListener("online", () => { syncOnline(); if (!client) startWake(); });
+addEventListener("offline", syncOnline);
+syncOnline();
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 </script>
 </body>
 </html>
